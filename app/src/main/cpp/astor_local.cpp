@@ -95,7 +95,19 @@ Java_fr_astor_hades_LocalLlm_nativeGenerate(JNIEnv * env, jclass, jstring path, 
     Abort abort{Clock::now(), static_cast<uint64_t>(generation)}; llama_set_abort_callback(context.get(), abort_decode, &abort);
     auto sampler_params = llama_sampler_chain_default_params(); sampler_params.no_perf = true;
     std::unique_ptr<llama_sampler, decltype(&llama_sampler_free)> sampler(llama_sampler_chain_init(sampler_params), llama_sampler_free);
+#ifdef ASTOR_BASELINE_GREEDY
     llama_sampler_chain_add(sampler.get(), llama_sampler_init_greedy());
+#else
+    llama_sampler_chain_add(sampler.get(), llama_sampler_init_top_k(20));
+    llama_sampler_chain_add(sampler.get(), llama_sampler_init_penalties(64, 1.08f, 0.0f, 0.6f));
+    llama_sampler_chain_add(sampler.get(), llama_sampler_init_top_p(0.8f, 1));
+    llama_sampler_chain_add(sampler.get(), llama_sampler_init_temp(0.7f));
+#ifdef ASTOR_EVAL_SEED
+    llama_sampler_chain_add(sampler.get(), llama_sampler_init_dist(ASTOR_EVAL_SEED));
+#else
+    llama_sampler_chain_add(sampler.get(), llama_sampler_init_dist(LLAMA_DEFAULT_SEED));
+#endif
+#endif
     for (int i = 0; i < n; i += 32) {
         if (abort_decode(&abort)) return bytes(env, decode_error(2, abort, i, n));
         progress(env, listener, "Préparation de votre question : " + std::to_string(100 * i / n) + " %");
