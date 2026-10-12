@@ -836,7 +836,9 @@ cognitiveToggle.style.marginTop='8px';
 const cognitiveCheck=document.createElement('input');
 cognitiveCheck.type='checkbox';
 cognitiveCheck.id='enableCognitiveAI';
-cognitiveToggle.append(cognitiveCheck,document.createTextNode(' ASTOR Cognitive V1 · double vérification (expérimental, plus lent)'));
+cognitiveToggle.appendChild(cognitiveCheck);
+cognitiveToggle.textContent=' ASTOR Cognitive V1 · double vérification (expérimental, plus lent)';
+cognitiveToggle.insertBefore(cognitiveCheck,cognitiveToggle.firstChild);
 $('enableLocalAI').parentElement.appendChild(cognitiveToggle);
 
 const correctionPanel=document.createElement('section');
