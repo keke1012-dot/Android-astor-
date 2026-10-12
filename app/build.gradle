@@ -19,8 +19,8 @@ android {
         applicationId 'fr.astor.hades.prototype'
         minSdk 30
         targetSdk 35
-        versionCode 14
-        versionName '0.2.1.1-mnemosyne'
+        versionCode 15
+        versionName '0.2.1.2-tempest'
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
