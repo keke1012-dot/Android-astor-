@@ -824,10 +824,20 @@ const api={ready:false,installed:false,upgradeInstalled:false,lightInstalled:fal
  generate(prompt){
   if(!api.ready||!window.AstorLocalNative)return Promise.resolve('IA locale · Téléchargez d’abord le modèle.');
   if(pending)return Promise.resolve('IA locale · Un calcul est déjà en cours.');
-  return new Promise(resolve=>{const id=String(++sequence);pending={id,resolve,timer:setTimeout(()=>api.cancel(),120000)};busy(true);$('localAIStatus').textContent='Calcul en cours sur votre téléphone…';try{window.AstorLocalNative.generate(id,prompt);}catch{finish('IA locale · Le moteur n’est pas disponible.');}});
+  return new Promise(resolve=>{const id=String(++sequence);pending={id,resolve,timer:setTimeout(()=>api.cancel(),240000)};busy(true);$('localAIStatus').textContent='Calcul en cours sur votre téléphone…';try{if(cognitiveCheck.checked && typeof window.AstorLocalNative.cognitive==='function')window.AstorLocalNative.cognitive(id,prompt);else window.AstorLocalNative.generate(id,prompt);}catch{finish('IA locale · Le moteur n’est pas disponible.');}});
  }
 };
 window.ASTOR_LOCAL_AI=api;
+// Opt-in experimental cognitive mode. Default remains the proven single-pass path.
+const cognitiveToggle=document.createElement('label');
+cognitiveToggle.className='hint';
+cognitiveToggle.style.display='block';
+cognitiveToggle.style.marginTop='8px';
+const cognitiveCheck=document.createElement('input');
+cognitiveCheck.type='checkbox';
+cognitiveCheck.id='enableCognitiveAI';
+cognitiveToggle.append(cognitiveCheck,document.createTextNode(' ASTOR Cognitive V1 · double vérification (expérimental, plus lent)'));
+$('enableLocalAI').parentElement.appendChild(cognitiveToggle);
 $('downloadLocalModel').onclick=()=>{if(api.upgradeInstalled){if(window.AstorLocalNative)window.AstorLocalNative.state();return;}if(window.AstorLocalNative)window.AstorLocalNative.download();else $('localAIStatus').textContent='Le modèle local est disponible dans l’application Android.';};
 $('useLightLocalModel').addEventListener('change',()=>{if(pending){$('useLightLocalModel').checked=api.useLight;return;}if(window.AstorLocalNative&&typeof window.AstorLocalNative.selectLight==='function')window.AstorLocalNative.selectLight($('useLightLocalModel').checked);});
 $('cancelLocalAI').onclick=()=>api.cancel();
