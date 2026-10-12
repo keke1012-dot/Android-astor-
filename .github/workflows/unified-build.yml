@@ -1,7 +1,7 @@
 name: ASTOR Unified Build for Private Signing
 on:
   push:
-    branches: [develop/astor-0.2.5-global]
+    branches: [develop/astor-0.2.5-global, feature/astor-cognitive-v1]
   workflow_dispatch:
 permissions:
   contents: read
@@ -36,6 +36,11 @@ jobs:
           gradle-version: '8.9'
       - name: Install Android SDK
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0" "ndk;27.2.12479018" "cmake;3.22.1"
+      - name: Test Learning V1 Java regression
+        run: |
+          mkdir -p "$RUNNER_TEMP/learning-v1"
+          javac -d "$RUNNER_TEMP/learning-v1" app/src/main/java/fr/astor/hades/LearningIndex.java tests_v025/LearningIndexRegression.java
+          java -cp "$RUNNER_TEMP/learning-v1" fr.astor.hades.LearningIndexRegression
       - name: Test conversation, vault and Mnemosyne
         run: |
           node tests_v025/guardrails.cjs
