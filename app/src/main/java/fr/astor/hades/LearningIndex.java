@@ -43,7 +43,7 @@ public final class LearningIndex {
         ArrayList<Entry> hits = new ArrayList<>();
         for (Entry entry : entries) {
             String e = normalize(entry.question);
-            if (e.equals(q) || overlap(q, e) >= 0.5) hits.add(entry);
+            if (e.equals(q)) hits.add(entry);
         }
         hits.sort(Comparator.<Entry>comparingDouble(e -> overlap(q, normalize(e.question)))
                 .reversed().thenComparing(Comparator.comparingLong((Entry e) -> e.approvedAt).reversed()));
