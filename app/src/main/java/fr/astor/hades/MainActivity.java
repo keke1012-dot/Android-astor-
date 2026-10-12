@@ -387,6 +387,19 @@ public final class MainActivity extends Activity {
                     }).setNegativeButton("Annuler", null).show();
             });
         }
+        @android.webkit.JavascriptInterface public void cognitive(String id, String prompt) {
+            if (id == null || !id.matches("[0-9]{1,12}") || prompt == null || prompt.length() > 2200) return;
+            runOnUiThread(() -> {
+                if (!trustedVoiceView(view)) return;
+                view.setKeepScreenOn(true);
+                new CognitiveEngine(localLlm).think(prompt, (reply, error) -> runOnUiThread(() -> {
+                    view.setKeepScreenOn(false);
+                    if (!trustedVoiceView(view)) return;
+                    view.evaluateJavascript("window.ASTOR_LOCAL_AI && window.ASTOR_LOCAL_AI.result("
+                            + JSONObject.quote(id) + "," + JSONObject.quote(reply) + "," + JSONObject.quote(error) + ")", null);
+                }));
+            });
+        }
         @android.webkit.JavascriptInterface public void generate(String id, String prompt) {
             if (id == null || !id.matches("[0-9]{1,12}") || prompt == null || prompt.length() > 14000) return;
             runOnUiThread(() -> {
