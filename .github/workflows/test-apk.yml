@@ -71,13 +71,13 @@ jobs:
           java -Djava.library.path="$RUNNER_TEMP/astor-native-smoke" -cp "$RUNNER_TEMP/astor-tests" fr.astor.hades.LocalLlmQualityTest "$RUNNER_TEMP/qwen3-upgrade.gguf" "$RUNNER_TEMP/upgraded-quality.json" direct
           java -Djava.library.path="$RUNNER_TEMP/astor-native-smoke" -cp "$RUNNER_TEMP/astor-tests" fr.astor.hades.LocalLlmSwitchTest "$RUNNER_TEMP/qwen3.gguf" "$RUNNER_TEMP/qwen3-upgrade.gguf"
       - name: Compile and lint test APK
-        run: gradle :app:assembleDebug :app:lintDebug -PastorMemoryTest --no-daemon
+        run: gradle :app:assembleDebug :app:lintDebug -PastorGlobalTest --no-daemon
       - name: Verify APK signature
         run: '"$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose app/build/outputs/apk/debug/app-debug.apk'
       - name: Prepare memory test APK and signing verifier
         run: |
           mkdir -p dist
-          cp app/build/outputs/apk/debug/app-debug.apk dist/Astor-IA-Locale-0.2.5-rc1.apk
+          cp app/build/outputs/apk/debug/app-debug.apk dist/Astor-IA-Locale-0.2.5-rc1-separe.apk
           cp "$ANDROID_HOME/build-tools/35.0.0/lib/apksigner.jar" dist/apksigner.jar
           cp "$RUNNER_TEMP/light-quality.json" dist/light-quality.json
           cp "$RUNNER_TEMP/upgraded-quality.json" dist/upgraded-quality.json
@@ -85,7 +85,7 @@ jobs:
           sha256sum *.apk apksigner.jar > SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: ASTOR-IA-Locale-0.2.5-rc1-APK
+          name: ASTOR-IA-Locale-0.2.5-rc1-SEPARATE-APK
           path: dist/
           if-no-files-found: error
           retention-days: 14

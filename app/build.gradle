@@ -42,9 +42,9 @@ android {
     }
     buildTypes {
         debug {
-            applicationIdSuffix project.hasProperty('astorMemoryTest') ? '.test.mnemosyne' : (project.hasProperty('astorSeparateTest') ? '.test.tempest' : '.test')
+            applicationIdSuffix project.hasProperty('astorGlobalTest') ? '.test.global025' : project.hasProperty('astorMemoryTest') ? '.test.mnemosyne' : (project.hasProperty('astorSeparateTest') ? '.test.tempest' : '.test')
             versionNameSuffix '-test'
-            manifestPlaceholders = [astorAppLabel: project.hasProperty('astorMemoryTest') ? 'Astor Mémoire' : (project.hasProperty('astorSeparateTest') ? 'Astor Tempest' : 'Astor Test')]
+            manifestPlaceholders = [astorAppLabel: project.hasProperty('astorGlobalTest') ? 'Astor 0.2.5 Test' : project.hasProperty('astorMemoryTest') ? 'Astor Mémoire' : (project.hasProperty('astorSeparateTest') ? 'Astor Tempest' : 'Astor Test')]
         }
         release {
             manifestPlaceholders = [astorAppLabel: 'Astor']
