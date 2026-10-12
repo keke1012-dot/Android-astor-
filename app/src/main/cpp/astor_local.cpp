@@ -99,9 +99,9 @@ Java_fr_astor_hades_LocalLlm_nativeGenerate(JNIEnv * env, jclass, jstring path, 
     llama_sampler_chain_add(sampler.get(), llama_sampler_init_greedy());
 #else
     llama_sampler_chain_add(sampler.get(), llama_sampler_init_top_k(20));
-    llama_sampler_chain_add(sampler.get(), llama_sampler_init_penalties(64, 1.08f, 0.0f, 0.6f));
+    llama_sampler_chain_add(sampler.get(), llama_sampler_init_penalties(64, 1.05f, 0.0f, 0.1f));
     llama_sampler_chain_add(sampler.get(), llama_sampler_init_top_p(0.8f, 1));
-    llama_sampler_chain_add(sampler.get(), llama_sampler_init_temp(0.7f));
+    llama_sampler_chain_add(sampler.get(), llama_sampler_init_temp(0.6f));
 #ifdef ASTOR_EVAL_SEED
     llama_sampler_chain_add(sampler.get(), llama_sampler_init_dist(ASTOR_EVAL_SEED));
 #else

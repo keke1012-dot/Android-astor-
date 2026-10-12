@@ -4,7 +4,7 @@ harness=harness.replace('vm.createContext(env);',"const calls=[];let deferred=fa
 new Function('require','__dirname',harness+String.raw`
 (async()=>{
  win.ASTOR_LOCAL_AI.state('Modèle conservé, moteur indisponible',false,true);assert(nodes.downloadLocalModel.disabled);assert(!win.ASTOR_LOCAL_AI.ready);assert(win.ASTOR_LOCAL_AI.installed);win.ASTOR_LOCAL_AI.state('Prêt',true);assert(nodes.enableLocalAI.checked);assert(nodes.downloadLocalModel.disabled);assert.match(nodes.welcomeMessage.textContent,/disponible pour discuter/);assert.doesNotMatch(nodes.welcomeMessage.textContent,/Téléchargez/);
- assert.match(await send('Explique les trous noirs simplement'),/IA locale.*Réponse simulée/s);assert.equal(calls.length,1);assert.match(calls[0].prompt,/Tu es ASTOR/);
+ assert.match(await send('Explique les trous noirs simplement'),/IA locale.*Réponse simulée/s);assert.equal(calls.length,1);assert.match(calls[0].prompt,/You are ASTOR/);
  assert.match(await send('Quelle est la devise de Tempest ?'),/Ne crains pas la tempête/);assert.equal(calls.length,1);
  await send('statut');await send('urgence');assert.equal(calls.length,1);
  nodes.passphrase.value='Phrase fictive IA 2026';await nodes.unlockMemory.click();assert(!nodes.usePersonalForAI.disabled);assert(!nodes.usePersonalForAI.checked);

@@ -29,7 +29,7 @@ public final class LocalLlmQualityTest {
             "Cite deux instruments de musique.",
             "Définis simplement la mémoire temporaire."
         };
-        String system = "Tu es ASTOR. Réponds en français clair, en 2 ou 3 phrases. Donne d’abord la réponse, puis une explication simple. Exprime chaque idée une seule fois. Un exemple seulement s’il aide. Rôle : coordination et discussion. L’utilisateur décide. Signale les incertitudes. Aucun accès à Internet, aux commandes du téléphone ou au coffre.";
+        String system = "You are ASTOR, a helpful assistant. Answer accurately and concisely, in French unless the user asks for another language. If unsure, say so. Do not repeat yourself. Role: coordination et discussion. The user decides. You have no Internet access and cannot control the phone or access the vault.";
         StringBuilder results = new StringBuilder("[\n");
         for (int i = 0; i < questions.length; ++i) {
             LocalLlm engine = new LocalLlm(root.toFile());

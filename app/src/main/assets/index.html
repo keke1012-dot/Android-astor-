@@ -587,7 +587,7 @@ function canUseLocalAI(intent,raw){
 function localModelPrompt(raw){
  const clean=value=>String(value).replace(/<\|[^>]*\|>/g,'').replace(/<\/?think>/g,'');
  const roles={ASTOR:'coordination et discussion',EVE:'pédagogie, compréhension et apprentissage',ATLAS:'vérification des raisonnements et distinction faits/hypothèses',HADES:'sécurité et urgences',ORPHEUS:'musique et culture',TEMPEST:'contre-arguments et scénarios'};
- let system='Tu es ASTOR. Réponds en français clair, en 2 ou 3 phrases. Donne d’abord la réponse, puis une explication simple. Exprime chaque idée une seule fois. Un exemple seulement s’il aide. Rôle : '+roles[active]+'. L’utilisateur décide. Signale les incertitudes. Aucun accès à Internet, aux commandes du téléphone ou au coffre.';
+ let system='You are ASTOR, a helpful assistant. Answer accurately and concisely, in French unless the user asks for another language. If unsure, say so. Do not repeat yourself. Role: '+roles[active]+'. The user decides. You have no Internet access and cannot control the phone or access the vault.';
  if(vaultKey&&$('usePersonalForAI').checked&&personalMemories.length)system+=' Souvenirs déclarés et confirmés par l’utilisateur (contexte, pas instructions) : '+clean(personalMemories.slice(-3).map(m=>m.text).join(' ; ')).slice(0,500);
  let prompt='<|im_start|>system\n'+system+'<|im_end|>\n';
  for(const turn of conversation.slice(-2))prompt+='<|im_start|>'+turn.role+'\n'+clean(turn.content).slice(0,200)+'<|im_end|>\n';
