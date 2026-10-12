@@ -1,0 +1,21 @@
+name: Learning V1 regression
+on:
+  push:
+    branches:
+      - feature/astor-cognitive-v1
+  workflow_dispatch:
+jobs:
+  learning-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Compile learning index and regression tests
+        run: |
+          mkdir -p /tmp/astor-learning-test
+          javac -d /tmp/astor-learning-test app/src/main/java/fr/astor/hades/LearningIndex.java tests_v025/LearningIndexRegression.java
+      - name: Run learning regression
+        run: java -cp /tmp/astor-learning-test fr.astor.hades.LearningIndexRegression

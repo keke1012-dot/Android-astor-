@@ -1,0 +1,16 @@
+{
+  "status": "data_prepared_no_training_run",
+  "training_examples": 24,
+  "evaluation_cases": 8,
+  "memory_candidates": 14,
+  "contains_full_chat_export": false,
+  "contains_personal_secrets": false,
+  "external_upload_performed": false,
+  "model_weights_changed": false,
+  "files": {
+    "evaluation.json": "b588b03b8798f1c9a117d365cb996e613061e0d1e9db94ad8163db15a0aa0172",
+    "memory_candidates.json": "5176aa1fdea8f17babf1369b86ce2ad320b2a70783b8de1aa6e35b915b5301ba",
+    "memory_commands.txt": "dfc0766ce852b5c728c783af2890737ddc90b6499b284b6d6f46643c251a92ce",
+    "train.jsonl": "ac64d657e4ab9e1ec953ea3e02dd6e9ddeb238031f5fb542f3d38a07616c798a"
+  }
+}

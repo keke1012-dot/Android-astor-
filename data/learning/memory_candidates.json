@@ -1,0 +1,191 @@
+{
+  "schema": "astor.memory-candidates.v1",
+  "created_at": "2026-10-12",
+  "coverage": "Contexte fourni et échanges visibles uniquement ; pas un export intégral des conversations.",
+  "status": "prepared_not_imported",
+  "requires_review": true,
+  "entries": [
+    {
+      "id": "history.name",
+      "text": "L’assistant du projet porte le nom Astor.",
+      "source": {
+        "kind": "provided_conversation_context",
+        "date": "2026-10-12",
+        "verbatim_transcript": false
+      },
+      "confidence": "medium",
+      "sensitivity": "project",
+      "target": "encrypted_personal_memory",
+      "include_in_training": false
+    },
+    {
+      "id": "history.decision",
+      "text": "L’utilisateur prend la décision finale ; Astor et les modules conseillent.",
+      "source": {
+        "kind": "provided_conversation_context",
+        "date": "2026-10-12",
+        "verbatim_transcript": false
+      },
+      "confidence": "medium",
+      "sensitivity": "project",
+      "target": "encrypted_personal_memory",
+      "include_in_training": false
+    },
+    {
+      "id": "history.eve",
+      "text": "Eve accompagne l’apprentissage, demande le raisonnement et vérifie la compréhension.",
+      "source": {
+        "kind": "provided_conversation_context",
+        "date": "2026-10-12",
+        "verbatim_transcript": false
+      },
+      "confidence": "medium",
+      "sensitivity": "project",
+      "target": "encrypted_personal_memory",
+      "include_in_training": false
+    },
+    {
+      "id": "history.atlas",
+      "text": "Atlas contrôle les raisonnements, distingue faits, hypothèses et incertitudes. Sa devise : Ne crois pas. Vérifie.",
+      "source": {
+        "kind": "provided_conversation_context",
+        "date": "2026-10-12",
+        "verbatim_transcript": false
+      },
+      "confidence": "medium",
+      "sensitivity": "project",
+      "target": "encrypted_personal_memory",
+      "include_in_training": false
+    },
+    {
+      "id": "history.hades",
+      "text": "Hades accompagne la sécurité et les urgences. Le rôle conceptuel ne donne aucun contrôle réel du téléphone.",
+      "source": {
+        "kind": "provided_conversation_context",
+        "date": "2026-10-12",
+        "verbatim_transcript": false
+      },
+      "confidence": "medium",
+      "sensitivity": "project",
+      "target": "encrypted_personal_memory",
+      "include_in_training": false
+    },
+    {
+      "id": "history.tempest",
+      "text": "Tempest est un adversaire stratégique expérimental. Sa devise : Ne crains pas la tempête. Crains celui qui sait la diriger.",
+      "source": {
+        "kind": "provided_conversation_context",
+        "date": "2026-10-12",
+        "verbatim_transcript": false
+      },
+      "confidence": "medium",
+      "sensitivity": "project",
+      "target": "encrypted_personal_memory",
+      "include_in_training": false
+    },
+    {
+      "id": "history.mnemosyne",
+      "text": "Mnémosyne est le module de mémoire contextuelle durable intégré à Astor.",
+      "source": {
+        "kind": "provided_conversation_context",
+        "date": "2026-10-12",
+        "verbatim_transcript": false
+      },
+      "confidence": "medium",
+      "sensitivity": "project",
+      "target": "encrypted_personal_memory",
+      "include_in_training": false
+    },
+    {
+      "id": "history.filter",
+      "text": "Le Filtre Astor évalue utilité, cohérence avec l’objectif et priorité ; il signale la complexité disproportionnée.",
+      "source": {
+        "kind": "provided_conversation_context",
+        "date": "2026-10-12",
+        "verbatim_transcript": false
+      },
+      "confidence": "medium",
+      "sensitivity": "project",
+      "target": "encrypted_personal_memory",
+      "include_in_training": false
+    },
+    {
+      "id": "history.goal",
+      "text": "L’objectif du projet est un partenaire de réflexion permettant une discussion libre, tout en préservant l’autonomie de l’utilisateur.",
+      "source": {
+        "kind": "provided_conversation_context",
+        "date": "2026-10-12",
+        "verbatim_transcript": false
+      },
+      "confidence": "medium",
+      "sensitivity": "project",
+      "target": "encrypted_personal_memory",
+      "include_in_training": false
+    },
+    {
+      "id": "history.stability",
+      "text": "La fiabilité, la consolidation et les tests passent avant les nouvelles fonctionnalités.",
+      "source": {
+        "kind": "provided_conversation_context",
+        "date": "2026-10-12",
+        "verbatim_transcript": false
+      },
+      "confidence": "medium",
+      "sensitivity": "project",
+      "target": "encrypted_personal_memory",
+      "include_in_training": false
+    },
+    {
+      "id": "history.interface",
+      "text": "Le 11 octobre 2026, l’utilisateur a demandé une nouvelle interface sans TARDIS. Cette décision remplace le thème TARDIS antérieur.",
+      "source": {
+        "kind": "provided_conversation_context",
+        "date": "2026-10-12",
+        "verbatim_transcript": false
+      },
+      "confidence": "medium",
+      "sensitivity": "project",
+      "target": "encrypted_personal_memory",
+      "include_in_training": false
+    },
+    {
+      "id": "history.earpiece",
+      "text": "Le prototype Oreillette Astor vise Android : activation tactile, traduction bidirectionnelle, détection automatique des langues, français par défaut, données hybrides et haut-parleur par défaut.",
+      "source": {
+        "kind": "provided_conversation_context",
+        "date": "2026-10-12",
+        "verbatim_transcript": false
+      },
+      "confidence": "medium",
+      "sensitivity": "project",
+      "target": "encrypted_personal_memory",
+      "include_in_training": false
+    },
+    {
+      "id": "history.orpheus",
+      "text": "Le thème musical symbolique d’Astor porte le nom Éveil.",
+      "source": {
+        "kind": "provided_conversation_context",
+        "date": "2026-10-12",
+        "verbatim_transcript": false
+      },
+      "confidence": "medium",
+      "sensitivity": "project",
+      "target": "encrypted_personal_memory",
+      "include_in_training": false
+    },
+    {
+      "id": "history.status",
+      "text": "La candidate 0.2.5 séparée a été compilée et vérifiée en CI. Son installation et son fonctionnement sur le téléphone ne sont pas encore confirmés dans les échanges visibles.",
+      "source": {
+        "kind": "visible_session",
+        "date": "2026-10-12",
+        "verbatim_transcript": false
+      },
+      "confidence": "high",
+      "sensitivity": "project",
+      "target": "encrypted_personal_memory",
+      "include_in_training": false
+    }
+  ]
+}
