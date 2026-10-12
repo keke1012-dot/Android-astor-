@@ -19,8 +19,8 @@ android {
         applicationId 'fr.astor.hades.prototype'
         minSdk 30
         targetSdk 35
-        versionCode 15
-        versionName '0.2.1.2-tempest'
+        versionCode 16
+        versionName '0.2.2-mnemosyne'
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -38,9 +38,9 @@ android {
     }
     buildTypes {
         debug {
-            applicationIdSuffix project.hasProperty('astorSeparateTest') ? '.test.tempest' : '.test'
+            applicationIdSuffix project.hasProperty('astorMemoryTest') ? '.test.mnemosyne' : (project.hasProperty('astorSeparateTest') ? '.test.tempest' : '.test')
             versionNameSuffix '-test'
-            manifestPlaceholders = [astorAppLabel: project.hasProperty('astorSeparateTest') ? 'Astor Tempest' : 'Astor Test']
+            manifestPlaceholders = [astorAppLabel: project.hasProperty('astorMemoryTest') ? 'Astor Mémoire' : (project.hasProperty('astorSeparateTest') ? 'Astor Tempest' : 'Astor Test')]
         }
         release {
             manifestPlaceholders = [astorAppLabel: 'Astor']
