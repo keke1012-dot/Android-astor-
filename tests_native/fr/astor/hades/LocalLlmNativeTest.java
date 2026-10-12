@@ -11,7 +11,7 @@ public final class LocalLlmNativeTest {
     public static void main(String[] args) throws Exception {
         Path root = Files.createTempDirectory("astor-jni-model-");
         Path directory = Files.createDirectories(root.resolve("local-model"));
-        Path file = directory.resolve("qwen3-0.6b-q8.gguf");
+        Path file = directory.resolve(args.length > 1 ? "qwen3-1.7b-q4km.gguf" : "qwen3-0.6b-q8.gguf");
         try { Files.createLink(file, Path.of(args[0])); } catch (Exception e) { Files.copy(Path.of(args[0]), file); }
         LocalLlm engine = new LocalLlm(root.toFile());
         if (!engine.ready()) throw new AssertionError("Native library or downloaded model unavailable");

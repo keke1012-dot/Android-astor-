@@ -19,18 +19,33 @@ public final class LocalLlm {
     static final long MODEL_SIZE = 639446688L;
     static final String MODEL_SHA = "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031";
     static final String MODEL_URL = "https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/resolve/23749fefcc72300e3a2ad315e1317431b06b590a/Qwen3-0.6B-Q8_0.gguf";
+    static final long UPGRADE_SIZE = 1282439584L;
+    static final String UPGRADE_SHA = "72c5c3cb38fa32d5256e2fe30d03e7a64c6c79e668ad84057e3bd66e250b24fb";
+    static final String UPGRADE_URL = "https://huggingface.co/bartowski/Qwen_Qwen3-1.7B-GGUF/resolve/dcb19155b962dbb6389f4691a982043a8e651022/Qwen_Qwen3-1.7B-Q4_K_M.gguf";
     private static final boolean AVAILABLE;
     static { boolean loaded; try { System.loadLibrary("astor_local"); loaded = true; } catch (UnsatisfiedLinkError e) { loaded = false; } AVAILABLE = loaded; }
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final AtomicLong epoch = new AtomicLong();
     private final AtomicBoolean busy = new AtomicBoolean();
-    private final File directory, model;
+    private final File directory, model, upgrade;
+    private volatile boolean useLight;
     private volatile HttpsURLConnection transfer;
     private volatile boolean closed;
     public interface Listener { void state(String message, int percent); void done(String reply, String error); }
-    public LocalLlm(File storage) { directory = new File(storage, "local-model"); model = new File(directory, "qwen3-0.6b-q8.gguf"); }
+    public LocalLlm(File storage) { directory = new File(storage, "local-model"); model = new File(directory, "qwen3-0.6b-q8.gguf"); upgrade = new File(directory, "qwen3-1.7b-q4km.gguf"); }
     public boolean available() { return AVAILABLE; }
-    public boolean installed() { return model.isFile() && model.length() == MODEL_SIZE; }
+    public boolean lightInstalled() { return model.isFile() && model.length() == MODEL_SIZE; }
+    public boolean upgradeInstalled() { return upgrade.isFile() && upgrade.length() == UPGRADE_SIZE; }
+    private File selectedModel() { return !useLight && upgradeInstalled() ? upgrade : model; }
+    public boolean usingLight() { return selectedModel().equals(model); }
+    public String modelName() { return usingLight() ? "Qwen3 0.6B · léger" : "Qwen3 1.7B · amélioré"; }
+    public boolean installed() { return usingLight() ? lightInstalled() : upgradeInstalled(); }
+    public boolean isBusy() { return busy.get(); }
+    public boolean selectLight(boolean light) {
+        if (busy.get() || closed || (light && !lightInstalled()) || (!light && !upgradeInstalled())) return false;
+        useLight = light;
+        return true;
+    }
     public boolean ready() { return AVAILABLE && installed(); }
     public void generate(String prompt, Listener listener) {
         if (closed || !AVAILABLE) { listener.done("", "Moteur local incompatible avec cet appareil."); return; }
@@ -38,11 +53,12 @@ public final class LocalLlm {
         if (prompt.length() > 14000) { listener.done("", "Demande trop longue."); return; }
         if (!busy.compareAndSet(false, true)) { listener.done("", "Une opération locale est déjà en cours."); return; }
         long generation = epoch.get(), nativeGeneration = nativeRevision();
+        File selected = selectedModel();
         worker.execute(() -> {
             try {
                 if (generation != epoch.get()) return;
                 listener.state("Chargement du modèle et préparation de la question…", -1);
-                byte[] result = nativeGenerate(model.getAbsolutePath(), prompt.getBytes(StandardCharsets.UTF_8), nativeGeneration, listener);
+                byte[] result = nativeGenerate(selected.getAbsolutePath(), prompt.getBytes(StandardCharsets.UTF_8), nativeGeneration, listener);
                 if (generation != epoch.get()) return;
                 String answer = new String(result, StandardCharsets.UTF_8);
                 if (answer.startsWith("ERREUR_LOCAL:")) listener.done("", answer.substring(13));
@@ -59,16 +75,16 @@ public final class LocalLlm {
     }
     public void download(Listener listener) {
         if (closed || !AVAILABLE) { listener.done("", "Moteur local incompatible avec cet appareil."); return; }
-        if (installed()) { listener.done("Modèle déjà installé. Aucun téléchargement nécessaire.", ""); return; }
+        if (upgradeInstalled()) { listener.done("Modèle amélioré déjà installé. Aucun téléchargement nécessaire.", ""); return; }
         if (!busy.compareAndSet(false, true)) { listener.done("", "Une opération locale est déjà en cours."); return; }
         long generation = epoch.get();
         worker.execute(() -> {
-            File part = new File(directory, "model.part");
+            File part = new File(directory, "upgrade.part");
             try {
                 if (!current(generation)) return;
                 if (!directory.isDirectory() && !directory.mkdirs()) throw new java.io.IOException();
-                if (directory.getUsableSpace() < MODEL_SIZE + 64_000_000L) { listener.done("", "Espace insuffisant : libérez environ 750 Mo sur le téléphone."); return; }
-                URL url = new URL(MODEL_URL);
+                if (directory.getUsableSpace() < UPGRADE_SIZE + 64_000_000L) { listener.done("", "Espace insuffisant : libérez environ 1,4 Go sur le téléphone."); return; }
+                URL url = new URL(UPGRADE_URL);
                 HttpsURLConnection connection = null;
                 for (int redirects = 0; redirects < 8; redirects++) {
                     if (!allowed(url) || !current(generation)) throw new java.io.IOException();
@@ -87,18 +103,19 @@ public final class LocalLlm {
                     byte[] buffer = new byte[65536]; int count;
                     while ((count = input.read(buffer)) != -1) {
                         if (!current(generation)) return;
-                        total += count; if (total > MODEL_SIZE) throw new java.io.IOException();
+                        total += count; if (total > UPGRADE_SIZE) throw new java.io.IOException();
                         output.write(buffer, 0, count); digest.update(buffer, 0, count);
-                        int percent = (int) (100 * total / MODEL_SIZE);
+                        int percent = (int) (100 * total / UPGRADE_SIZE);
                         if (percent != lastPercent) { lastPercent = percent; listener.state("Téléchargement du modèle : " + percent + " %", percent); }
                     }
                     output.getFD().sync();
                 }
                 StringBuilder hash = new StringBuilder(); for (byte b : digest.digest()) hash.append(String.format(java.util.Locale.ROOT, "%02x", b & 255));
                 if (!current(generation)) return;
-                if (total != MODEL_SIZE || !MODEL_SHA.equals(hash.toString())) { listener.done("", "Téléchargement incomplet ou intégrité incorrecte. Réessayez."); return; }
-                Files.move(part.toPath(), model.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-                listener.done("Modèle vérifié et installé. Les réponses sont maintenant calculées hors connexion.", "");
+                if (total != UPGRADE_SIZE || !UPGRADE_SHA.equals(hash.toString())) { listener.done("", "Téléchargement incomplet ou intégrité incorrecte. Réessayez."); return; }
+                Files.move(part.toPath(), upgrade.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+                useLight = false;
+                listener.done("Modèle amélioré vérifié et installé. Les réponses sont maintenant calculées hors connexion.", "");
             } catch (Exception e) { if (current(generation)) listener.done("", "Téléchargement interrompu. Vérifiez la connexion et réessayez."); }
             finally { if (transfer != null) transfer.disconnect(); transfer = null; part.delete(); busy.set(false); }
         });

@@ -12,6 +12,7 @@ namespace {
 std::atomic<uint64_t> revision{0};
 std::mutex engine_mutex;
 llama_model * model = nullptr;
+std::string loaded_location;
 bool initialized = false;
 using Clock = std::chrono::steady_clock;
 struct Abort { Clock::time_point started; uint64_t expected; };
@@ -54,7 +55,7 @@ Java_fr_astor_hades_LocalLlm_nativeCancel(JNIEnv *, jclass) { revision.fetch_add
 extern "C" JNIEXPORT void JNICALL
 Java_fr_astor_hades_LocalLlm_nativeRelease(JNIEnv *, jclass) {
     std::lock_guard<std::mutex> guard(engine_mutex);
-    if (model) { llama_model_free(model); model = nullptr; }
+    if (model) { llama_model_free(model); model = nullptr; loaded_location.clear(); }
 }
 
 extern "C" JNIEXPORT jbyteArray JNICALL
@@ -67,12 +68,14 @@ Java_fr_astor_hades_LocalLlm_nativeGenerate(JNIEnv * env, jclass, jstring path, 
     }
     const char * location = env->GetStringUTFChars(path, nullptr);
     if (!location) return bytes(env, "ERREUR_LOCAL:Chemin du modèle indisponible.");
+    if (model && loaded_location != location) { llama_model_free(model); model = nullptr; loaded_location.clear(); }
     if (!model) {
         auto params = llama_model_default_params(); params.n_gpu_layers = 0;
         uint64_t expected = static_cast<uint64_t>(generation);
         params.progress_callback = [](float, void * data) { return revision.load() == *static_cast<uint64_t *>(data); };
         params.progress_callback_user_data = &expected;
         model = llama_model_load_from_file(location, params);
+        if (model) loaded_location = location;
     }
     env->ReleaseStringUTFChars(path, location);
     if (revision.load() != static_cast<uint64_t>(generation)) return bytes(env, "ERREUR_LOCAL:Génération annulée.");

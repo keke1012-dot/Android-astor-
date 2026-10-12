@@ -1,0 +1,111 @@
+{
+  "conditions": "Exact pinned JNI CPU engine, 1024 context, 32 token batches, same prompts and host seed 42; ten synthetic questions. Phone performance remains unmeasured.",
+  "light": [
+    {
+      "question": "Explique-moi simplement ce qu’est un trou noir.",
+      "answer": "Un trou noir est une région de l'espace où la lumière ne peut pas s'y déplacer, ce qui rend son espace invisible. Il n'y a pas d'objet observable, et il n'y a pas de matière ou d'énergie à cause de sa gravité extrême.",
+      "milliseconds": 2556
+    },
+    {
+      "question": "Pourquoi pleut-il ?",
+      "answer": "Il pleut parce que l'atmosphère est en mouvement, ce qui provoque des particules minuscules à travers la chaleur.",
+      "milliseconds": 1732
+    },
+    {
+      "question": "Quelle est la différence entre une étoile et une planète ?",
+      "answer": "La différence entre une étoile et une planète réside dans leur position : une étoile est un objet céleste dont la lumière est projetée sur la surface terrestre, tandis que une planète est une forme géométrique qui apparaît dans le ciel.",
+      "milliseconds": 2513
+    },
+    {
+      "question": "Pourquoi la glace fond-elle ?",
+      "answer": "La glace fond-elle parce qu'elle est en contact avec l'air et la chaleur.",
+      "milliseconds": 1552
+    },
+    {
+      "question": "Qu’est-ce qu’une hypothèse ?",
+      "answer": "Une hypothèse est une idée ou un prévision qui peut être testée pour voir si elle est vraie.",
+      "milliseconds": 1671
+    },
+    {
+      "question": "Comment dit-on bonjour en anglais ?",
+      "answer": "Hello!",
+      "milliseconds": 1171
+    },
+    {
+      "question": "Donne une astuce pour expliquer clairement une idée.",
+      "answer": "Une astuce pour expliquer une idée clairement est de : **utiliser des exemples concrets et d’illustrer les points clés avec des cas concrets**. Cela facilite la compréhension et la retention.",
+      "milliseconds": 2281
+    },
+    {
+      "question": "Qu’est-ce qu’un budget ?",
+      "answer": "Un budget est une estimation des coûts d’un projet ou d’une activité.",
+      "milliseconds": 1474
+    },
+    {
+      "question": "Cite deux instruments de musique.",
+      "answer": "L'organ et le piano.",
+      "milliseconds": 1261
+    },
+    {
+      "question": "Définis simplement la mémoire temporaire.",
+      "answer": "La mémoire temporaire est la capacité d'un système à stocker et accéder des données pendant un moment ou une durée spécifique.",
+      "milliseconds": 1725
+    }
+  ],
+  "candidate": [
+    {
+      "question": "Explique-moi simplement ce qu’est un trou noir.",
+      "answer": "Un trou noir est un objet astrophysique qui est si dense et massif que la lumière ne peut pas échapper à son attraction. Il a une surface appelée \"horizon des événements\", après lequel rien, même la lumière, ne peut revenir. C’est un phénomène qui se produit lorsque la matière est compressée jusqu’à un point où la gravité est si forte que les lois de la physique classique ne s'appliquent plus.",
+      "milliseconds": 5853
+    },
+    {
+      "question": "Pourquoi pleut-il ?",
+      "answer": "Le temps peut être ensoleillé ou pluvieux selon les conditions météorologiques. Si il pleut, c'est souvent parce que la météo prévoit une précipitation.",
+      "milliseconds": 3441
+    },
+    {
+      "question": "Quelle est la différence entre une étoile et une planète ?",
+      "answer": "Une étoile est un corps céleste qui émet de la lumière et de la chaleur grâce à sa fusion nucléaire, tandis qu'une planète est un corps céleste qui orbite autour d'une étoile et qui n'émet pas de lumière propre.",
+      "milliseconds": 4406
+    },
+    {
+      "question": "Pourquoi la glace fond-elle ?",
+      "answer": "La glace fond parce qu'elle est composée de molécules d'eau qui, à température ambiante, se déplacent et se réarrangent. Lorsqu'il y a une température plus élevée que la température de fusion, les molécules d'eau atteignent leur énergie thermique nécessaire pour se séparer et former de l'eau liquide. Cela provoque le fond de la glace.",
+      "milliseconds": 5549
+    },
+    {
+      "question": "Qu’est-ce qu’une hypothèse ?",
+      "answer": "Une hypothèse est une proposition de fait ou une idée qui peut être testée ou vérifiée par des observations ou des expériences. Elle est souvent utilisée en science pour formuler uneidée à tester et évaluer son validité.",
+      "milliseconds": 4062
+    },
+    {
+      "question": "Comment dit-on bonjour en anglais ?",
+      "answer": "En anglais, on dit \"Hello\" pour saluer.",
+      "milliseconds": 2469
+    },
+    {
+      "question": "Donne une astuce pour expliquer clairement une idée.",
+      "answer": "Une astuce efficace pour expliquer une idée clairement est d'utiliser un exemple concret et relatif à la situation. Cela permet de rendre l'idée plus accessible et tangible pour le lecteur.",
+      "milliseconds": 3862
+    },
+    {
+      "question": "Qu’est-ce qu’un budget ?",
+      "answer": "Un budget est un plan détaillé qui établit les ressources à disposition et les dépenses prévues pour un période donnée, afin de garantir l'efficacité et la gestion optimale des ressources. Il permet de répartir les fonds entre différentes activités ou projets, et de s'assurer que les dépenses ne dépassent pas les ressources disponibles.",
+      "milliseconds": 5175
+    },
+    {
+      "question": "Cite deux instruments de musique.",
+      "answer": "Deux instruments de musique sont le piano et la guitare.",
+      "milliseconds": 2468
+    },
+    {
+      "question": "Définis simplement la mémoire temporaire.",
+      "answer": "La mémoire temporaire est une forme de mémoire qui permet de stocker des informations pendant un court moment, souvent utilisée pour des tâches comme la manipulation de données, la prise de décision ou l'attention. Elle est distincte de la mémoire permanente, qui s'établit plus longtemps et est conservée dans le cerveau.",
+      "milliseconds": 4903
+    }
+  ],
+  "mean_ms": {
+    "light": 1794,
+    "candidate": 4219
+  }
+}

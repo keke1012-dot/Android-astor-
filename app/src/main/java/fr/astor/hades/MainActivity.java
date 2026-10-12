@@ -362,13 +362,20 @@ public final class MainActivity extends Activity {
         @android.webkit.JavascriptInterface public void cancel() {
             runOnUiThread(() -> { if (trustedVoiceView(view)) { view.setKeepScreenOn(false); localLlm.cancel(); localAiState(view, "Calcul annulé.", localLlm.ready()); } });
         }
+        @android.webkit.JavascriptInterface public void selectLight(boolean light) {
+            runOnUiThread(() -> { if (trustedVoiceView(view)) {
+                boolean changed = localLlm.selectLight(light);
+                if (changed) publishLocalModelState(view);
+                else localAiState(view, "Changement indisponible pendant une opération ou sans le modèle choisi.", localLlm.ready());
+            } });
+        }
         @android.webkit.JavascriptInterface public void download() {
             runOnUiThread(() -> {
                 if (!trustedVoiceView(view)) return;
-                if (localLlm.installed()) { publishLocalModelState(view); return; }
+                if (localLlm.isBusy() || localLlm.upgradeInstalled()) { publishLocalModelState(view); return; }
                 if (!localLlm.available()) { localAiState(view, "Moteur incompatible avec cet appareil.", false); return; }
-                new AlertDialog.Builder(MainActivity.this).setTitle("Installer le modèle local")
-                    .setMessage("Télécharger Qwen3 0.6B (environ 640 Mo) depuis Hugging Face ? Une connexion Wi-Fi est conseillée. Les futures questions resteront sur ce téléphone.")
+                new AlertDialog.Builder(MainActivity.this).setTitle("Améliorer l’IA locale")
+                    .setMessage("Télécharger Qwen3 1.7B compressé (environ 1,28 Go) depuis Hugging Face ? Gardez environ 1,4 Go libres. Le modèle léger déjà installé est conservé. Le calcul peut être plus lent. Une connexion Wi-Fi est conseillée. Les questions restent sur ce téléphone.")
                     .setPositiveButton("Télécharger", (d, which) -> {
                         if (!trustedVoiceView(view)) return;
                         view.setKeepScreenOn(true);
@@ -399,13 +406,13 @@ public final class MainActivity extends Activity {
     }
     private void localAiState(WebView view, String message, boolean ready) {
         view.evaluateJavascript("window.ASTOR_LOCAL_AI && window.ASTOR_LOCAL_AI.state("
-            + JSONObject.quote(message) + "," + ready + "," + localLlm.installed() + ")", null);
+            + JSONObject.quote(message) + "," + ready + "," + localLlm.installed() + "," + localLlm.upgradeInstalled() + "," + localLlm.lightInstalled() + "," + localLlm.usingLight() + ")", null);
     }
     private void publishLocalModelState(WebView view) {
         String message = localLlm.installed()
-                ? (localLlm.available() ? "Modèle déjà installé · IA locale disponible sans Internet"
+                ? (localLlm.available() ? localLlm.modelName() + " disponible · sans Internet"
                         : "Modèle conservé sur le téléphone · moteur local indisponible sur cet appareil")
-                : (localLlm.available() ? "Modèle à télécharger une fois · environ 640 Mo"
+                : (localLlm.available() ? "Modèle amélioré à télécharger · environ 1,28 Go"
                         : "Moteur local incompatible avec cet appareil");
         localAiState(view, message, localLlm.ready());
     }
