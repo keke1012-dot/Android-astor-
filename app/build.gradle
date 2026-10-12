@@ -1,0 +1,53 @@
+plugins { id 'com.android.application' }
+
+// Private file lives outside distributable sources. No signing secrets in this project.
+def astorSigning = new Properties()
+def astorSigningPath = System.getenv('ASTOR_SIGNING_PROPERTIES')
+if (astorSigningPath) {
+    def privateFile = new File(astorSigningPath)
+    if (!privateFile.isFile()) throw new GradleException('Private signing properties file not found')
+    privateFile.withInputStream { astorSigning.load(it) }
+    for (name in ['storeFile', 'storePassword', 'keyAlias', 'keyPassword']) {
+        if (!astorSigning.getProperty(name)) throw new GradleException('Incomplete private signing properties')
+    }
+}
+
+android {
+    namespace 'fr.astor.hades'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'fr.astor.hades.prototype'
+        minSdk 30
+        targetSdk 35
+        versionCode 14
+        versionName '0.2.1.1-mnemosyne'
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    signingConfigs {
+        prototype {
+            if (!astorSigning.isEmpty()) {
+                storeFile file(astorSigning.getProperty('storeFile'))
+                storePassword astorSigning.getProperty('storePassword')
+                keyAlias astorSigning.getProperty('keyAlias')
+                keyPassword astorSigning.getProperty('keyPassword')
+            }
+        }
+    }
+    buildTypes {
+        debug {
+            applicationIdSuffix '.test'
+            versionNameSuffix '-test'
+            manifestPlaceholders = [astorAppLabel: 'Astor Test']
+        }
+        release {
+            manifestPlaceholders = [astorAppLabel: 'Astor']
+            minifyEnabled false
+            debuggable false
+            signingConfig astorSigning.isEmpty() ? null : signingConfigs.prototype
+        }
+    }
+}
+dependencies { implementation 'androidx.webkit:webkit:1.12.1' }

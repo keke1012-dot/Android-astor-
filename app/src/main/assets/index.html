@@ -1,0 +1,626 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#07101e"><title>Astor · Votre espace personnel</title><style>
+:root{color-scheme:dark;--cyan:#5ce9ff;--bg:#050b16;--line:#28647d}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% 38%,#10334c 0%,#081426 45%,#040810 90%);color:#dff6ff;font:15px system-ui,Arial;min-height:100vh}header{display:flex;align-items:center;justify-content:space-between;padding:18px 5%;border-bottom:1px solid #24536b;background:#071523b8;gap:10px}header strong{letter-spacing:.28em;color:var(--cyan);font-size:20px}small,.muted{color:#8caebe}button,input,textarea{font:inherit}button{cursor:pointer;color:#dff6ff;background:#102b40;border:1px solid #367b94;border-radius:12px;padding:10px 14px}button:hover,button:focus-visible{border-color:#7cf5ff;background:#17435a}button:focus-visible{outline:2px solid #fff}main{max-width:1250px;margin:auto;padding:20px;display:grid;grid-template-columns:240px minmax(0,1fr) 270px;gap:18px}.panel{background:#0b1b2bd9;border:1px solid #28566e;border-radius:18px;padding:18px;box-shadow:inset 0 0 20px #1ad6ff08,0 12px 35px #0005}.panel h2{font-size:13px;letter-spacing:.18em;color:#8deaff;margin:0 0 16px}.stack{display:grid;gap:10px}.module{width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center}.module.active{border-color:#79eafa;background:#164258}.dot{height:7px;width:7px;background:#56f4bb;border-radius:50%;box-shadow:0 0 12px #56f4bb}.core{text-align:center;min-height:355px;display:grid;place-items:center;position:relative;overflow:hidden}.rings{width:min(65vw,260px);height:min(65vw,260px);border:1px solid #48ddff66;border-radius:50%;display:grid;place-items:center;box-shadow:0 0 70px #21cfff24,inset 0 0 50px #17cfff20;position:relative;animation:pulse 4s ease-in-out infinite}.rings:before,.rings:after{content:"";position:absolute;inset:17px;border:2px dashed #5beaff88;border-radius:50%;animation:spin 30s linear infinite}.rings:after{inset:36px;border-style:solid;border-color:#4ce6ff44;border-left-color:#ec6cfa;border-right-color:#ff9562;animation-direction:reverse;animation-duration:19s}.letter{font-size:110px;font-weight:200;background:linear-gradient(135deg,#74e7ff 10%,#df8bff 50%,#ff926b 85%);color:transparent;background-clip:text;text-shadow:0 0 55px #48e5ff55;z-index:1}.core-label{position:absolute;bottom:14px;color:#8ad7e9;letter-spacing:.15em;font-size:12px}@keyframes spin{to{transform:rotate(360deg)}}@keyframes pulse{50%{box-shadow:0 0 100px #21cfff55,inset 0 0 60px #17cfff30}}.workspace{display:grid;gap:18px}.chatlog{height:220px;overflow:auto;display:flex;flex-direction:column;gap:10px;padding-right:4px}.bubble{border:1px solid #2d5368;border-radius:12px;padding:10px 12px;background:#102638;white-space:pre-wrap;overflow-wrap:anywhere}.bubble.user{align-self:flex-end;background:#15465b}.composer{display:flex;gap:8px;margin-top:12px}.composer input{min-width:0;flex:1;background:#071421;color:#fff;border:1px solid #32627a;border-radius:10px;padding:12px}.hint{font-size:12px;color:#8baabb;line-height:1.5}.media-frame{display:grid;gap:10px}.media-frame a{color:#88e9ff}.media-controls{display:flex;gap:8px;flex-wrap:wrap}textarea{width:100%;min-height:95px;background:#071421;color:#e3faff;border:1px solid #32627a;border-radius:10px;padding:10px;resize:vertical}.status{font-size:12px;color:#83eac6}.toolbar{display:flex;gap:8px;flex-wrap:wrap}.hidden{display:none}footer{text-align:center;padding:22px;color:#7198a9;font-size:12px}@media(max-width:980px){main{grid-template-columns:1fr 1fr}.workspace{grid-column:1/-1;grid-row:1}.core{min-height:310px}}@media(max-width:620px){header{padding:14px}header strong{font-size:16px}main{display:flex;flex-direction:column;padding:12px}.core{min-height:300px}.rings{width:220px;height:220px}.letter{font-size:95px}}
+ .security input{width:100%;background:#071421;color:#fff;border:1px solid #32627a;border-radius:10px;padding:10px}.security{display:grid;gap:8px;margin-top:12px}.security label{font-size:12px;color:#9ed7e5}.security .toolbar button{flex:1}.statusline{font-size:12px;color:#8deaff;overflow-wrap:anywhere} @media(prefers-reduced-motion:reduce){.rings,.rings:before,.rings:after{animation:none!important}}
+/* ORPHEUS V2 */
+#mediaPanel{min-width:225px;resize:horizontal;overflow:auto;max-width:480px;align-self:start}#mediaPanel .media-frame{gap:12px}#mediaPanel input,#mediaPanel select{width:100%;min-width:0;background:#071421;color:#e3faff;border:1px solid #32627a;border-radius:9px;padding:9px}#mediaPanel audio{width:100%;max-width:100%}#mediaPanel .media-controls button{flex:1}#youtubeEmbed{width:100%;aspect-ratio:16/9;border:1px solid #32627a;border-radius:10px;background:#020810}#mediaPanel .media-status{font-size:12px;color:#9bdbe9;overflow-wrap:anywhere}#mediaPanel label{font-size:12px;color:#9bdbe9}#mediaPanel .media-head{display:flex;gap:8px;align-items:center;justify-content:space-between}#mediaPanel .media-head h2{margin:0}#mediaPanel .media-head button{font-size:12px;padding:7px}#mediaPanel .media-controls{display:flex;gap:6px}#mediaPanel .media-controls button{padding:8px 6px}#mediaPanel .media-frame a{overflow-wrap:anywhere}@media(max-width:980px){#mediaPanel{max-width:none;width:100%;resize:none}}@media(max-width:620px){#mediaPanel{width:100%}}
+@media(max-width:620px){html{font-size:16px}body{overflow-x:hidden}main{display:flex;flex-direction:column;gap:12px;padding:10px}main>*{width:100%;min-width:0;box-sizing:border-box}#mediaPanel{min-width:0;max-width:100%;overflow:visible}#mediaPanel .media-controls{flex-wrap:wrap}#mediaPanel .media-controls button{min-width:85px;min-height:44px}button,input,textarea{font-size:16px;touch-action:manipulation}#mediaPanel input[type=range]{min-height:44px}#youtubeEmbed{display:block}header{gap:8px;flex-wrap:wrap}iframe{max-width:100%}}@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style><style id="accessGateStyle">
+#astorGate{position:fixed;inset:0;z-index:99999;background:#050c17;display:flex;align-items:center;justify-content:center;padding:20px;color:#e6f8ff;font-family:system-ui,sans-serif}
+#astorGate .gateBox{width:min(420px,100%);padding:28px;border:1px solid #237b9a;border-radius:20px;background:#0b1d2d;box-shadow:0 0 45px #087c9b44}
+#astorGate h1{margin:0 0 8px;color:#78e2ff}#astorGate p{font-size:14px;line-height:1.5}
+#astorGate input{box-sizing:border-box;width:100%;min-height:48px;padding:12px;margin:12px 0;border:1px solid #58a8c0;border-radius:8px;background:#071522;color:white;font-size:16px}
+#astorGate button{min-height:48px;width:100%;background:#126782;color:white;border:0;border-radius:8px;font-weight:700}
+#astorGate button:disabled{opacity:.5}#gateMsg{min-height:22px;color:#ffbb93}
+body.astor-locked>header,body.astor-locked>main,body.astor-locked>footer{visibility:hidden!important}
+</style><style id="atlasV2Styles">.atlas-v2{grid-column:1/-1}.atlas-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.atlas-grid textarea{width:100%;min-height:100px;background:#071625;color:#e3f8ff;border:1px solid #367b94;border-radius:10px;padding:12px}.atlas-result{white-space:pre-wrap;line-height:1.6;border:1px solid #2b647a;border-radius:12px;padding:14px;background:#071827;margin-top:12px}.atlas-tag{color:#89e9ff;font-weight:bold}.atlas-small{font-size:12px;color:#9dbcc9}@media(max-width:700px){.atlas-grid{grid-template-columns:1fr}}</style><style id="atlasV21MobileFix">html,body{max-width:100%;overflow-x:hidden}main,main>*,.workspace,.panel,.chatlog,.composer,.bubble,.atlas-v2,.atlas-grid,.atlas-grid>div{min-width:0;max-width:100%}.bubble,.atlas-result,.hint,.statusline,.media-status{overflow-wrap:anywhere;word-break:normal;white-space:pre-wrap}.chatlog{overflow-x:hidden}.composer{display:flex;flex-wrap:wrap;gap:8px}.composer input{flex:1 1 170px;min-width:0;width:auto}.composer button{flex:0 0 auto}.panel input,.panel textarea{max-width:100%;min-width:0}.atlas-grid textarea{box-sizing:border-box}#mediaPanel{max-width:100%}@media(max-width:700px){main{display:flex;flex-direction:column;width:100%;padding:10px;gap:12px}main>*,.workspace,.workspace>*,.panel{width:100%;max-width:100%;min-width:0}#mediaPanel{width:100%;resize:none;overflow:visible}.composer input{flex-basis:100%}.composer button{flex:1 1 90px}header{flex-wrap:wrap}.atlas-grid{grid-template-columns:minmax(0,1fr)}} </style><style>fieldset.security{min-width:0;margin:14px 0;border:1px solid #367b94}#routingSettings label{display:block;margin:10px 0}button:disabled{opacity:.5;cursor:default}#mediaBody[inert]{opacity:.55}</style><style id="androidFluidStyles">:root{--bg:#0b0f15;--surface:#141b24;--surface2:#1b2530;--line:#283544;--ink:#f0f4f7;--muted:#a4b1be;--cyan:#8de3e0;--gold:#dbbd88}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,sans-serif;font-size:15px;line-height:1.5;background-image:none}[hidden]{display:none!important}
+button,input,textarea,select{font:inherit}button,a,input,textarea{-webkit-tap-highlight-color:transparent}button,a{touch-action:manipulation}button{color:var(--ink);background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:12px 16px;min-height:48px;box-shadow:none;letter-spacing:0;transition:background .15s}button:hover{border-color:var(--cyan)}button:active{background:#243e45;transform:none}button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}button:disabled{opacity:.45}
+svg:not(.astor-live-logo){width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+#androidAppbar{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}#androidAppbar header{max-width:760px;margin:auto;display:flex;align-items:center;gap:10px;padding:13px 20px;min-height:74px;border:0;background:none;backdrop-filter:none}#androidAppbar header strong{margin-right:auto;font-weight:750;font-size:18px;letter-spacing:.17em;line-height:1.3}#androidAppbar header strong small{display:block;font-size:11px;letter-spacing:0;font-weight:400;color:var(--muted);margin-top:3px}#clock{display:none}#androidSettings,#androidLockNow{display:grid;place-items:center;padding:0;width:44px;min-height:44px;border-radius:50%;background:var(--surface)}
+#androidNavigation{position:fixed;bottom:0;left:0;right:0;z-index:30;display:flex;justify-content:center;padding:9px 8px calc(9px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:#101720}#androidNavigation button{max-width:140px;flex:1;min-width:0;min-height:58px;display:flex;align-items:center;justify-content:center;gap:4px;flex-direction:column;border:0;padding:6px 2px;background:transparent;color:var(--muted);border-radius:12px;font-size:11px;line-height:1.3}#androidNavigation button[aria-pressed=true]{color:var(--cyan);background:#1b3036}#androidNavigation button svg{width:23px;height:23px}
+main{display:block!important;max-width:760px;padding:20px 18px 112px!important;margin:auto}main>.panel,.workspace{width:100%;min-width:0}.workspace{display:flex;flex-direction:column;gap:20px}.panel{border:1px solid var(--line);border-radius:22px;background:var(--surface);box-shadow:none;padding:22px;backdrop-filter:none}h1,h2,p{margin-top:0}h1{font-size:26px;line-height:1.15;font-weight:650;letter-spacing:-.04em;margin-bottom:10px}h2{font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-.025em;color:var(--ink);margin-bottom:18px}.eyebrow{display:block;color:var(--gold);font-size:10px;letter-spacing:.16em;font-weight:650;margin-bottom:12px}.hint,.atlas-small{font-size:13px;line-height:1.6;color:var(--muted)}.status,.statusline{font-size:12px;line-height:1.5;color:var(--cyan);letter-spacing:0}.statusline{margin:10px 0;overflow-wrap:anywhere}
+.workspace>.core{display:grid;grid-template-columns:minmax(0,1fr) 100px;align-items:center;gap:12px;min-height:180px;padding:22px;background:linear-gradient(120deg,#17232e,var(--surface));overflow:hidden}.hero-copy p{font-size:13px;line-height:1.5;color:var(--muted);margin:0}.core .rings{width:100px;height:100px;animation:none;box-shadow:none;border:0;background:none;display:block;position:relative}.core .rings::before,.core .rings::after{display:none}.core-label{grid-column:1/-1;color:var(--cyan);font-size:10px;letter-spacing:.12em;margin:3px 0 0;max-width:none}.astor-live-logo{width:100%;height:100%;display:block}.astor-logo-orbit{transform-origin:54px 54px;animation:astorOrbit 12s linear infinite}
+#androidConsolePanel{padding:20px}#androidConsolePanel h2{margin-bottom:7px}#consoleRouteStatus{font-size:11px;color:var(--muted);margin:0}#androidQuickActions{display:flex;gap:7px;margin:15px 0 17px}#androidQuickActions button{font-size:12px;min-height:36px;padding:7px 15px;border-radius:20px;background:transparent;color:var(--muted)}#chatlog{height:clamp(180px,32dvh,350px);min-height:180px;max-height:none;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;scrollbar-width:thin;padding:0 2px}.bubble{background:#202c38;border:0;padding:14px 16px;border-radius:17px 17px 17px 5px;color:#e0e9ed;line-height:1.55;font-size:14px;margin:0 0 12px;max-width:95%;overflow-wrap:anywhere;animation:astorReply .18s ease-out both}.bubble.user{background:#24514f;color:#f1fffc;border-radius:17px 17px 5px 17px;margin-left:auto;max-width:90%}
+.composer{display:flex;flex-wrap:nowrap;gap:8px;align-items:center;margin:16px 0 12px;padding:6px;background:#0d141c;border:1px solid var(--line);border-radius:18px}.composer input{flex:1;min-width:0;min-height:48px;margin:0;background:transparent;border:0;border-radius:12px;padding:10px 9px;font-size:15px}.composer button[type=submit]{display:grid;place-items:center;flex:0 0 44px;width:44px;min-height:44px;border:0;background:var(--cyan);color:#12302f;padding:10px;border-radius:13px}#voice{display:none}#chatForm+.hint{font-size:10px;margin:0}
+input,textarea{color:var(--ink);background:#0d141c;border:1px solid var(--line);border-radius:13px;width:100%;padding:13px;min-height:48px;margin:7px 0 12px;font-size:15px}input::placeholder,textarea::placeholder{color:#8795a4}input[type=checkbox]{width:20px;height:20px;min-height:20px;margin:0 10px 0 0;accent-color:var(--cyan);vertical-align:middle}label{font-size:13px;color:var(--muted)}.security{padding:16px;border:1px solid var(--line);border-radius:16px;background:#101820;margin:15px 0}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.toolbar button{flex:1;white-space:normal;font-size:13px}.danger-action{color:#efb4ac;background:transparent;border-color:#60433f!important}#unlockMemory,#saveMemory,#atlasAnalyze{background:var(--cyan);color:#173432;border-color:var(--cyan);font-weight:600}#androidMemoryPanel textarea{min-height:230px;resize:vertical}#memory:disabled{opacity:.55}#androidMemoryPanel>.hint{margin-bottom:0}
+#androidModulesPanel .stack{display:grid;grid-template-columns:1fr 1fr;gap:12px}.module{position:relative;text-align:left;display:block;min-height:116px;padding:17px 14px;border-radius:17px;font-size:11px;letter-spacing:.12em;background:#19232e;overflow:hidden}.module[data-module=ASTOR]{grid-column:1/-1;min-height:94px}.module.active{border-color:var(--cyan);background:#1b343b;box-shadow:none}.module-role{display:block;font-size:18px;letter-spacing:-.02em;font-weight:600;color:var(--ink);margin:8px 0 4px}.module-detail{display:block;color:var(--muted);font-size:11px;font-weight:400;letter-spacing:0}.module .dot{position:absolute;right:15px;top:18px;box-shadow:none}.module[data-module=EVE]{color:#b8dbb6}.module[data-module=ATLAS]{color:#c7b0f2}.module[data-module=HADES]{color:#e7bb91}.module[data-module=ORPHEUS]{color:#e1b5d0}#moduleDesc{margin:16px 0}#routingSettings legend{font-size:12px;color:var(--muted);padding:0 6px}#routingSettings label{display:flex;align-items:center;border-top:1px solid #26323e;padding:12px 0;margin:0;font-size:14px}#routingSettings label:first-of-type{border-top:0}#routingSettings .hint{margin-bottom:12px}
+.atlas-grid{display:flex;flex-direction:column;gap:12px}.atlas-grid textarea{min-height:140px}.atlas-result{background:#101820;border:1px solid var(--line);border-radius:15px;padding:16px;font-size:14px;line-height:1.6;color:var(--ink);min-height:100px;white-space:pre-wrap;overflow-wrap:anywhere}.atlas-grid label{display:block}#mediaPanel{resize:none;max-width:none;min-width:0;width:100%}.service-links{display:flex;flex-direction:column;gap:12px;margin:24px 0}.service-links a{display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1px solid var(--line);border-radius:16px;padding:19px;color:var(--ink);text-decoration:none;font-size:16px;min-height:64px}.service-links a::after{content:'↗';color:var(--cyan);font-size:22px}
+@keyframes astorOrbit{to{transform:rotate(360deg)}}@keyframes astorReply{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}.android-reduced-motion *,.android-reduced-motion *::before,.android-reduced-motion *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+@media(max-width:360px){main{padding:15px 12px 108px!important}.panel{padding:18px}.workspace>.core{grid-template-columns:minmax(0,1fr) 80px;gap:8px;padding:18px}.core .rings{width:80px;height:80px}h1{font-size:23px}#androidAppbar header{padding:12px 15px;gap:7px}.module{padding:15px 12px}}
+@media(max-height:540px){.workspace>.core{display:none}main{padding-top:12px!important;padding-bottom:84px!important}#androidAppbar header{min-height:54px;padding-top:7px;padding-bottom:7px}#androidAppbar header small{display:none}#androidNavigation{padding-top:4px;padding-bottom:4px}#androidNavigation button{min-height:44px}#chatlog{height:26dvh;min-height:95px}#androidQuickActions{margin:8px 0}#androidConsolePanel{padding:15px}}
+
+/* Replace inherited typography and controls from the original Hub. */
+.panel h2{font-size:22px;font-weight:600;line-height:1.25;letter-spacing:-.025em;color:var(--ink)}
+.core{text-align:left}.hero-copy{min-width:0}.core .rings{justify-self:end}.core-label{text-align:left;position:static;justify-self:start}
+.panel input,.panel textarea,.atlas-grid textarea{background:#0d141c;border-color:var(--line);color:var(--ink);font:inherit}
+.panel .composer input{background:transparent;border:0;margin:0}
+fieldset.security{border-color:var(--line)}
+#androidMemoryPanel .toolbar button{min-width:0;font-weight:500}
+#androidAppbar header strong{color:var(--ink)}
+#androidConsolePanel h2{font-size:21px}
+@media(min-height:541px) and (max-height:850px){.workspace>.core{padding:18px;min-height:150px}.hero-copy h1{font-size:23px}.hero-copy p{font-size:12px}.hero-copy .eyebrow{margin-bottom:8px}.workspace{gap:16px}#chatlog{height:clamp(130px,20dvh,220px);min-height:130px}#androidQuickActions{margin:12px 0}#androidConsolePanel{padding:18px}}
+
+@media(max-height:540px){#androidConsolePanel{height:calc(100dvh - 140px);display:flex;flex-direction:column;padding:12px}#androidConsolePanel h2{font-size:18px;margin:0 0 4px;flex-shrink:0}#consoleRouteStatus{flex-shrink:0}#androidQuickActions{margin:6px 0;flex-shrink:0}#chatlog{flex:1;min-height:20px;height:auto}.composer{position:static;flex-shrink:0;margin:8px 0 4px}#chatForm+.hint{display:none}}
+
+/* Native, touch-initiated dictation; reviewed text is sent manually. */
+#voice{display:grid;place-items:center;flex:0 0 44px;width:44px;min-height:44px;padding:10px;border-radius:13px;background:var(--surface2);color:var(--cyan)}
+#voice[aria-pressed=true]{background:#633a36;color:#fff0ec;border-color:#df8f81}
+#androidVoiceStatus{font-size:11px;line-height:1.4;color:var(--cyan);margin:0 0 8px;overflow-wrap:anywhere}
+#androidVoiceStatus:empty{display:none}#androidVoiceStatus+.hint{font-size:10px;margin:0}
+@media(max-height:540px){#androidVoiceStatus{flex-shrink:0;font-size:10px;margin:0;max-height:40px;overflow:auto}#androidVoiceStatus+.hint{display:none}}
+</style></head><body><header><strong>ASTOR <small>Android · 0.2.1.1</small></strong><span class="status" id="clock" aria-live="off">SYSTÈME LOCAL</span><button id="wake">◉ Activer</button></header><main><aside class="panel"><h2>SOUS-SYSTÈMES</h2><div class="stack" id="modules"><button class="module active" data-module="ASTOR">ASTOR <span class="dot"></span></button><button class="module" data-module="EVE">EVE <span class="dot"></span></button><button class="module" data-module="HADES">HADES <span class="dot"></span></button><button class="module" data-module="ATLAS">ATLAS <span class="dot"></span></button><button class="module" data-module="ORPHEUS">ORPHEUS <span class="dot"></span></button></div><p class="hint" id="moduleDesc">Coordination, organisation et assistance.</p><fieldset class="security" id="routingSettings"><legend>MODULES · SESSION ACTUELLE</legend><p class="hint">Le routage choisit un module local selon la demande. Ces réglages reviennent à leur état initial au rechargement.</p><label class="hint"><input type="checkbox" id="enableModuleEVE" checked> Activer EVE</label><label class="hint"><input type="checkbox" id="enableModuleATLAS" checked> Activer ATLAS</label><label class="hint"><input type="checkbox" id="enableModuleHADES" checked> Activer HADES</label><label class="hint"><input type="checkbox" id="enableModuleORPHEUS" checked> Activer ORPHEUS</label><div id="routeStatus" class="statusline" role="status" aria-live="polite">Réponse : ASTOR · mode local</div></fieldset><h2>MÉMOIRE CONTEXTUELLE · CHIFFRÉE</h2><div class="security"><label for="passphrase">Phrase secrète (non enregistrée)</label><input id="passphrase" type="password" autocomplete="new-password" placeholder="12 caractères minimum"><div class="toolbar"><button id="unlockMemory">Déverrouiller / créer</button><button id="lockMemory">Verrouiller</button></div><div class="statusline" id="memoryStatus" role="status">Mémoire verrouillée</div></div><textarea id="memory" disabled placeholder="Déverrouillez la mémoire pour modifier vos notes…" aria-label="Mémoire locale"></textarea><div class="toolbar"><button id="saveMemory">Enregistrer</button><button id="clearMemory">Effacer</button></div><p class="hint">AES-GCM 256 bits, clé dérivée par PBKDF2. La phrase secrète reste en mémoire vive. Sans elle, récupération impossible. Les données restent sur cet appareil. La suppression du stockage navigateur les efface.</p><label class="hint"><input type="checkbox" id="shareContext"> Autoriser l’envoi de mes notes à l’IA lors des requêtes (désactivé par défaut)</label></aside><section class="workspace"><div class="panel core"><div class="rings" aria-label="Noyau holographique ASTOR"><svg class="astor-live-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" role="img" aria-label="Logo Astor"><defs><linearGradient id="astorLetterGradient" gradientUnits="userSpaceOnUse" x1="38" y1="34" x2="73" y2="73"><stop offset="0" stop-color="#8EF7FF"/><stop offset=".58" stop-color="#C6A1FF"/><stop offset="1" stop-color="#FFD393"/></linearGradient></defs><path d="M54,20L83.4,37v34L54,88L24.6,71V37z" fill="#0B203A"/><path d="M54,22a32,32 0,1 1,0 64a32,32 0,1 1,0 -64" fill="none" stroke="#183E5D" stroke-width="1.2"/><path d="M35,72L50,35L58,35L73,72L65,72L61,61L47,61L43,72zM50,54L58,54L54,43z" fill="url(#astorLetterGradient)" fill-rule="evenodd"/><path d="M49,78h3v3h-3z" fill="#70EAFA"/><path d="M54,78h3v3h-3z" fill="#BE91FF"/><path d="M59,78h3v3h-3z" fill="#FFD393"/><g class="astor-logo-orbit"><path d="M28,42A29,29 0,0 1,59,25M80,41A29,29 0,0 1,79,68" fill="none" stroke="#70EAFA" stroke-width="2.8" stroke-linecap="round"/><path d="M69,79A29,29 0,0 1,29,69" fill="none" stroke="#BE91FF" stroke-width="2.8" stroke-linecap="round"/><path d="M67,28L72,31M25,52L25,57" fill="none" stroke="#FFD393" stroke-width="2.8" stroke-linecap="round"/></g></svg></div><div class="core-label" id="coreStatus">NOYAU EN VEILLE · TOUCHEZ POUR ACTIVER</div></div><section class="panel"><h2>CONSOLE ASTOR · ROUTAGE LOCAL</h2><div id="consoleRouteStatus" class="statusline" role="status" aria-live="polite">Réponse : ASTOR · mode local</div><div class="chatlog" id="chatlog" role="log" aria-live="polite"><div class="bubble">Bienvenue dans ASTOR Android · 0.2.1.1. Accès validé par Android. Les réponses sont locales et la mémoire garde sa phrase secrète.</div></div><form class="composer" id="chatForm"><input id="message" aria-label="Votre message" placeholder="Écrire une demande ou une commande…" required><button type="submit">Envoyer</button><button type="button" id="voice" title="Dictée vocale">🎙</button></form><p class="hint">Contexte local : quatre échanges maximum, effacé au verrouillage. Commandes : aide, statut, mémoire, heure, modules, urgence, oublie le sujet.</p><div class="security"><label for="aiEndpoint">Point d’accès IA optionnel (même origine uniquement)</label><input id="aiEndpoint" placeholder="/api/chat" value="/api/chat"><label class="hint"><input type="checkbox" id="sendHistory"> Autoriser l’envoi des 4 derniers échanges (désactivé par défaut)</label><label class="hint"><input type="checkbox" id="enableAI"> Activer volontairement les requêtes IA distantes (désactivé par défaut)</label><div class="toolbar"><button type="button" id="testAI">Tester la connexion IA</button></div><p class="hint">Passerelle privée : accessible uniquement via une origine HTTPS sécurisée ou localhost. En mode fichier Android, le cerveau local reste disponible. Aucune clé API dans ce Hub.</p><div class="statusline" id="aiStatus">IA non connectée — serveur requis</div></div></section></section><aside class="panel" id="mediaPanel"><div class="media-head"><h2>ORPHEUS · V2.1</h2><button id="toggleMedia" aria-expanded="true" aria-controls="mediaBody">Replier</button></div><div class="media-frame" id="mediaBody"><label for="localAudio">Audio local (aucun envoi réseau)</label><input type="file" id="localAudio" accept="audio/*"><audio id="audioPlayer" controls preload="metadata"></audio><div class="media-controls"><button id="playMedia" type="button">▶ Lecture</button><button id="pauseMedia" type="button">Ⅱ Pause</button><button id="stopMedia" type="button">■ Stop</button></div><label for="mediaVolume">Volume local</label><input type="range" id="mediaVolume" min="0" max="100" value="70"><label for="youtubeURL">YouTube · URL ou identifiant vidéo</label><input id="youtubeURL" placeholder="https://www.youtube.com/watch?v=…" autocomplete="off"><button id="loadYouTube" type="button">Charger la vidéo</button><a id="youtubeExternal" href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer" style="display:block;margin:8px 0">↗ Ouvrir cette vidéo dans YouTube</a><p class="media-status" id="youtubeOriginWarning" role="status"></p><iframe id="youtubeEmbed" title="Lecteur YouTube" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen loading="lazy"></iframe><p class="hint">Certaines vidéos interdisent l'intégration. Les commandes YouTube dépendent du lecteur officiel.</p><h2>SPOTIFY · CONNEXION PRÉPARÉE</h2><p class="hint">OAuth PKCE : connexion à configurer sur une origine HTTPS avec une application Spotify enregistrée. Aucun secret dans le navigateur.</p><label for="spotifyClientId">Client ID public Spotify</label><input id="spotifyClientId" placeholder="Client ID (jamais Client Secret)" autocomplete="off"><button id="spotifyConnect" type="button">Préparer la connexion Spotify</button><div class="stack"><a href="https://open.spotify.com/" target="_blank" rel="noopener noreferrer">↗ Ouvrir Spotify</a><a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer">↗ Ouvrir YouTube</a></div><div class="media-status" id="mediaStatus" role="status">Lecteur prêt · commandes vocales : « Astor, pause musique », « Astor, lecture musique », « Astor, stop musique ».</div></div><h2>DIAGNOSTIC</h2><p class="hint">Audio local : <span class="status">prêt</span><br>YouTube : <span class="status">intégration iframe</span><br>Spotify : <span style="color:#ffc18b">OAuth non configuré</span></p></aside><section class="panel atlas-v2" id="atlasV2Panel" aria-labelledby="atlasV2Title"><h2 id="atlasV2Title">ATLAS · V2.0 — CONTRÔLE CRITIQUE</h2><p class="atlas-small">Analyse locale heuristique : aucune connexion réseau, aucune transmission de notes. Les classifications proposées ne sont pas des vérifications factuelles.</p><div class="atlas-grid"><div><label for="atlasInput">Affirmation ou raisonnement à examiner</label><textarea id="atlasInput" maxlength="5000" placeholder="Ex. : Notre système est fiable parce qu'il a réussi un test."></textarea></div><div><label for="atlasEvidence">Sources, preuves ou conditions de test (facultatif)</label><textarea id="atlasEvidence" maxlength="5000" placeholder="Décris les mesures, la source, les limites et les contre-exemples..."></textarea></div></div><div class="toolbar"><button type="button" id="atlasAnalyze">Analyser avec Atlas</button><button type="button" id="atlasClear">Effacer l'analyse</button></div><div id="atlasResult" class="atlas-result" role="status" aria-live="polite">Atlas V2.0.1 prêt. Saisis une affirmation pour lancer un contrôle.</div></section></main><footer>ASTOR · EVE · HADES · ATLAS · ORPHEUS — Prototype local V3.9.4.1 · Sécurité renforcée · ORPHEUS V2</footer><script>
+(()=>{'use strict';const $=id=>document.getElementById(id);const descriptions={ASTOR:'Coordination, organisation et assistance.',EVE:'Pédagogie adaptative et accompagnement de la réflexion.',HADES:'Protocoles de sécurité et aide à la priorisation en urgence.',ATLAS:'Vérification, contradiction et analyse critique.',ORPHEUS:'Accès aux services multimédias compatibles.'};let active='ASTOR',audioCtx=null,osc=null;let sessionEpoch=0;function add(message,who='system',speaker=''){const b=document.createElement('div');b.className='bubble'+(who==='user'?' user':'');b.textContent=(speaker?speaker+'\n':'')+message;$('chatlog').append(b);$('chatlog').scrollTop=$('chatlog').scrollHeight}function activate(){$('coreStatus').textContent='NOYAU ACTIF · '+active;$('wake').textContent='◉ Actif'}$('wake').onclick=activate;document.querySelector('.rings').addEventListener('click',activate);const moduleState={ASTOR:true,EVE:true,ATLAS:true,HADES:true,ORPHEUS:true};
+function setRouteStatus(text){$('routeStatus').textContent=text;$('consoleRouteStatus').textContent=text}
+function moduleAllowed(name){return moduleState[name]===true}
+window.astorModuleEnabled=moduleAllowed;
+function selectModule(name,manual=false){if(!moduleAllowed(name))return false;if(manual){sessionEpoch++;shortContext.reset()}active=name;document.querySelectorAll('[data-module]').forEach(b=>b.classList.toggle('active',b.dataset.module===name));$('moduleDesc').textContent=descriptions[name];activate();return true}
+function routeIntent(intent){const target=intent.name==='learningFollow'?'EVE':intent.name==='module'?intent.module:intent.name==='analysis'?'ATLAS':intent.name==='emergency'?'HADES':intent.name==='media'?'ORPHEUS':intent.name==='topic'&&intent.subject.kind==='learning'?'EVE':intent.name==='topic'?'ASTOR':['status','help','memory','time','modules','resetContext','lock','lockMemory'].includes(intent.name)?'ASTOR':active;
+ if(!moduleAllowed(target)){intent.blocked=true;setRouteStatus(target+' désactivé · réponse ASTOR');selectModule('ASTOR');return intent.name==='emergency'?'ASTOR : Hades est désactivé. En cas de danger immédiat en France, appelez le 112. Ce Hub ne contacte pas les secours.':target+' est désactivé pour cette session. Réactivez-le dans les réglages des modules pour cette demande.'}
+ selectModule(target);setRouteStatus('Réponse : '+target+' · routage local');return null;
+}
+document.querySelectorAll('[data-module]').forEach(btn=>btn.addEventListener('click',()=>{if(selectModule(btn.dataset.module,true)){add(active+' : '+descriptions[active]);setRouteStatus('Module choisi : '+active+' · mode local')}}));
+function syncModuleControls(name){const enabled=moduleAllowed(name);document.querySelectorAll('[data-module]').forEach(b=>{if(b.dataset.module===name)b.disabled=!enabled});
+ if(name==='ATLAS'){['atlasInput','atlasEvidence','atlasAnalyze','atlasClear'].forEach(id=>$(id).disabled=!enabled);if(!enabled){$('atlasInput').value='';$('atlasEvidence').value='';$('atlasResult').textContent='Atlas est désactivé pour cette session.'}else $('atlasResult').textContent='Atlas local prêt.'}
+ if(name==='ORPHEUS'){$('mediaBody').inert=!enabled;if(!enabled){$('audioPlayer').pause();$('youtubeEmbed').removeAttribute('src');$('mediaStatus').textContent='Orpheus désactivé · lecture en pause.'}else $('mediaStatus').textContent='Orpheus réactivé · lecteur local prêt.'}
+}
+['EVE','ATLAS','HADES','ORPHEUS'].forEach(name=>$('enableModule'+name).addEventListener('change',()=>{moduleState[name]=$('enableModule'+name).checked;sessionEpoch++;shortContext.reset();syncModuleControls(name);if(!moduleAllowed(active))selectModule('ASTOR');setRouteStatus(name+(moduleAllowed(name)?' activé':' désactivé')+' · contexte de discussion effacé.')}));
+const STORE='astor.v34.vault',OLD='astor.v34.memory';
+let vaultKey=null,plainMemory='',vaultSalt=null,lockTimer=null;
+let vaultEpoch=0,vaultOperation=null;
+const LOCK_MS=5*60*1000;
+const encoder=new TextEncoder(),decoder=new TextDecoder();
+const bytes=a=>Array.from(a),fromBytes=a=>new Uint8Array(a);
+function memoryStatus(t){$('memoryStatus').textContent=t}
+function secureAvailable(){return !!(window.isSecureContext&&crypto.subtle)}
+function legacyPresent(){try{return localStorage.getItem(OLD)!==null}catch{return false}}
+if(legacyPresent())memoryStatus('Anciennes notes non chiffrées détectées : déverrouillez pour les migrer.');
+function refreshLock(){if(lockTimer)clearTimeout(lockTimer);if(vaultKey)lockTimer=setTimeout(()=>{lock();memoryStatus('Mémoire verrouillée automatiquement après 5 minutes.')},LOCK_MS)}
+['pointerdown','keydown'].forEach(ev=>document.addEventListener(ev,()=>{if(vaultKey)refreshLock()}));
+document.addEventListener('visibilitychange',()=>{if(document.hidden)lock()});
+async function derive(pass,salt){const material=await crypto.subtle.importKey('raw',encoder.encode(pass),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:310000,hash:'SHA-256'},material,{name:'AES-GCM',length:256},false,['encrypt','decrypt'])}
+function vaultError(message){const error=new Error(message);error.vaultMessage=message;return error}
+function readVault(){
+ let raw;
+ try{raw=localStorage.getItem(STORE)}catch{throw vaultError('Stockage inaccessible. Aucune création ni modification du coffre.');}
+ if(raw===null)return {raw:null,record:null};
+ let record;
+ try{record=JSON.parse(raw)}catch{throw vaultError('Coffre illisible. Données conservées ; aucune création ni modification.');}
+ const validBytes=(value,length)=>Array.isArray(value)&&(length===undefined?value.length>=16:value.length===length)&&value.every(n=>Number.isInteger(n)&&n>=0&&n<=255);
+ if(!record||typeof record!=='object'||Array.isArray(record)||record.version!==1||record.kdf!=='PBKDF2-SHA256'||record.iterations!==310000||!validBytes(record.salt,16)||!validBytes(record.iv,12)||!validBytes(record.ciphertext))
+  throw vaultError('Format du coffre non reconnu ou endommagé. Données conservées ; aucune modification.');
+ return {raw,record};
+}
+function syncVaultControls(){
+ $('unlockMemory').disabled=!!vaultOperation;
+ $('saveMemory').disabled=!!vaultOperation;
+}
+function beginVaultOperation(){
+ if(vaultOperation||document.body.classList.contains('astor-locked'))return null;
+ const operation={epoch:vaultEpoch};vaultOperation=operation;syncVaultControls();return operation;
+}
+function currentVaultOperation(operation){return vaultOperation===operation&&operation.epoch===vaultEpoch&&!document.body.classList.contains('astor-locked')}
+function endVaultOperation(operation){if(vaultOperation===operation){vaultOperation=null;syncVaultControls()}}
+function assertUnchanged(raw){
+ let actual;
+ try{actual=localStorage.getItem(STORE)}catch{throw vaultError('Stockage inaccessible. Coffre non modifié.');}
+ if(actual!==raw)throw vaultError('Le coffre a changé pendant l’opération. Données conservées ; recommencez.');
+}
+async function encryptNotes(key,salt,notes){
+ const iv=crypto.getRandomValues(new Uint8Array(12));
+ const data=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,encoder.encode(notes));
+ return JSON.stringify({version:1,kdf:'PBKDF2-SHA256',iterations:310000,salt:bytes(salt),iv:bytes(iv),ciphertext:bytes(new Uint8Array(data))});
+}
+function lock(){
+ vaultEpoch++;vaultOperation=null;syncVaultControls();
+ sessionEpoch++;shortContext.reset();mnemosyneContextId=null;conversation.length=0;$('chatlog').replaceChildren();$('message').value='';
+ if(lockTimer)clearTimeout(lockTimer);lockTimer=null;
+ vaultKey=null;plainMemory='';vaultSalt=null;$('memory').value='';$('memory').disabled=true;$('passphrase').value='';$('shareContext').checked=false;memoryStatus('Mémoire verrouillée');
+}
+document.getElementById('lockMemory').onclick=lock;
+$('unlockMemory').onclick=async()=>{
+ if(!secureAvailable()){memoryStatus('HTTPS ou localhost requis pour le chiffrement.');return}
+ if(vaultOperation||document.body.classList.contains('astor-locked'))return;
+ const pass=$('passphrase').value;
+ if(pass.length<12){memoryStatus('Utilisez une phrase secrète de 12 caractères minimum.');return}
+ // Closing the old session also invalidates pending operations before this one starts.
+ lock();
+ const operation=beginVaultOperation();if(!operation)return;
+ memoryStatus('Ouverture du coffre…');
+ try{
+  const snapshot=readVault(),record=snapshot.record;
+  const salt=record?fromBytes(record.salt):crypto.getRandomValues(new Uint8Array(16));
+  const key=await derive(pass,salt);if(!currentVaultOperation(operation))return;
+  let notes='',legacy=null;
+  if(record){
+   const clear=await crypto.subtle.decrypt({name:'AES-GCM',iv:fromBytes(record.iv)},key,fromBytes(record.ciphertext));
+   if(!currentVaultOperation(operation))return;
+   notes=decoder.decode(clear);
+  }else{
+   // A failure to read legacy data must not be treated as an empty new vault.
+   try{legacy=localStorage.getItem(OLD)}catch{throw vaultError('Anciennes notes inaccessibles. Aucun coffre créé.');}
+   if(legacy!==null){
+    if(!confirm('Migrer les anciennes notes non chiffrées dans le coffre sécurisé ?')){memoryStatus('Migration annulée. Anciennes notes conservées.');return}
+    notes=legacy;
+   }
+   if(!currentVaultOperation(operation))return;
+   const encrypted=await encryptNotes(key,salt,notes);if(!currentVaultOperation(operation))return;
+   assertUnchanged(snapshot.raw);
+   // No await between the final validity check and the synchronous storage write.
+   localStorage.setItem(STORE,encrypted);
+   if(legacy!==null){
+    try{if(localStorage.getItem(OLD)===legacy)localStorage.removeItem(OLD)}catch{
+     memoryStatus('Migration chiffrée enregistrée ; anciennes notes non supprimées.');
+     return;
+    }
+   }
+  }
+  if(!currentVaultOperation(operation))return;
+  if(record)assertUnchanged(snapshot.raw); // Opening an existing vault never rewrites it.
+  vaultKey=key;vaultSalt=salt;plainMemory=notes;$('memory').value=notes;$('memory').disabled=false;
+  memoryStatus('Mémoire déverrouillée. Verrouillage automatique : 5 min.');refreshLock();
+ }catch(error){
+  if(currentVaultOperation(operation)){lock();memoryStatus(error.vaultMessage||'Déverrouillage impossible : phrase incorrecte ou stockage indisponible. Données du coffre conservées.');}
+ }finally{endVaultOperation(operation)}
+};
+$('saveMemory').onclick=async()=>{
+ if(!vaultKey){memoryStatus('Déverrouillez la mémoire avant de sauvegarder.');return}
+ const operation=beginVaultOperation();if(!operation)return;
+ const key=vaultKey,salt=vaultSalt.slice(),notes=$('memory').value;
+ memoryStatus('Enregistrement du coffre…');
+ try{
+  const snapshot=readVault();
+  if(!snapshot.record)throw vaultError('Coffre absent. Aucune recréation automatique ; déverrouillez à nouveau.');
+  const encrypted=await encryptNotes(key,salt,notes);if(!currentVaultOperation(operation))return;
+  assertUnchanged(snapshot.raw);localStorage.setItem(STORE,encrypted);
+  plainMemory=notes;memoryStatus('Notes chiffrées et enregistrées.');refreshLock();
+ }catch(error){if(currentVaultOperation(operation))memoryStatus(error.vaultMessage||'Échec de la sauvegarde : vérifiez le stockage.');}
+ finally{endVaultOperation(operation)}
+};
+$('clearMemory').onclick=()=>{
+ if(!confirm('Supprimer définitivement le coffre chiffré et les anciennes notes de cet appareil ?'))return;
+ lock(); // Pending decryption/encryption can never recreate the deleted vault.
+ try{localStorage.removeItem(STORE);localStorage.removeItem(OLD);memoryStatus('Mémoire locale supprimée.');}
+ catch{memoryStatus('Suppression impossible ou incomplète. Coffre verrouillé.');}
+};
+function endpoint(){const raw=$('aiEndpoint').value.trim();const u=new URL(raw,location.href);if(u.origin!==location.origin||!['https:','http:'].includes(u.protocol)||u.username||u.password||u.hash)throw Error('Point d’accès non autorisé : même origine uniquement');return u.pathname+u.search}async function requestAI(message){if(!$('enableAI').checked)throw Error('Connexion distante désactivée : autorisation requise');if(!aiReady())throw Error('Origine HTTPS ou localhost nécessaire');const path=endpoint();const payload={version:'3.8.2.1',message:message.slice(0,4000),module:active,policy:{executeActions:false,allowSystemCommands:false,requireUserConfirmation:true},client:'astor-android',instructions:({ASTOR:'Coordonner sans agir sur le système.',EVE:'Questionner, expliquer progressivement, vérifier la compréhension.',HADES:'Prioriser la sécurité, ne jamais exécuter une action.',ATLAS:'Distinguer faits, hypothèses et incertitudes, demander des sources.',ORPHEUS:'Assister avec les médias sans contourner les services.'})[active]};if($('shareContext').checked&&vaultKey){if(!confirm('Transmettre jusqu’à 4000 caractères de votre mémoire déchiffrée au serveur IA pour cette requête ?'))throw Error('Partage de mémoire refusé');payload.context=plainMemory.slice(0,4000)}payload.history=$('sendHistory').checked?conversation.filter(x=>!/(code pin|carte bancaire|phrase secrète|mot de passe|clé api|api key|token|secret|password)/i.test(x.content)).slice(-8).map(({role,content})=>({role,content:content.slice(0,1200)})):[];const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),15000);try{const r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),credentials:'same-origin',signal:controller.signal});if(!r.ok)throw Error('HTTP '+r.status);const data=await r.json();if(!data||typeof data.reply!=='string'||!data.reply.trim())throw Error('Réponse invalide');return data.reply.slice(0,12000)}finally{clearTimeout(timeout)}}$('testAI').onclick=async()=>{if(!$('enableAI').checked){$('aiStatus').textContent='IA distante désactivée : cochez l’autorisation avant tout test.';return}if(!confirm('Envoyer un message de test au serveur IA configuré ?'))return;if(!aiReady()){$('aiStatus').textContent='Mode fichier Android : moteur local actif. API distante impossible sans serveur HTTPS/localhost.';return}try{const testEpoch=sessionEpoch;const answer=await requestAI('Réponds simplement : connexion opérationnelle.');if(testEpoch!==sessionEpoch||document.body.classList.contains('astor-locked'))return;$('aiStatus').textContent='Connexion IA opérationnelle';add('IA : '+answer)}catch(e){$('aiStatus').textContent='IA indisponible : '+e.message}};const conversation=[];function record(role,content){if(/(code pin|carte bancaire|phrase secrète|mot de passe|clé api|api key|token|secret|password|sk-[a-z0-9])/i.test(content))return;conversation.push({role,content:String(content).slice(0,2000)});if(conversation.length>8)conversation.splice(0,conversation.length-8)}function normalizeInput(raw){return String(raw).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[’']/g,' ').replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim().replace(/^astor\s+/, '').trim()}
+// Curated local exercises; rolling subject state stays only in shortContext RAM.
+function createLearningCoach(normalize){
+ const banks={
+  english:[
+   [
+    {id:'en-am',prompt:'Complète : I ___ Alex. (Je suis Alex.) Réponds avec le mot manquant.',answer:'am',accept:['am','i am alex','i m alex'],hint:'Avec I, le verbe commence par a…',rule:'Avec I, le verbe to be prend la forme am.'},
+    {id:'en-are',prompt:'Complète : You ___ ready. (Tu es prêt.) Réponds avec le mot manquant.',answer:'are',accept:['are','you are ready','you re ready'],hint:'Avec you, le verbe commence par ar…',rule:'Avec you, le verbe to be prend la forme are.'}
+   ],
+   [
+    {id:'en-has',prompt:'Choisis have ou has : She ___ a book.',answer:'has',accept:['has','she has a book'],hint:'Au présent, he, she et it prennent la même forme.',rule:'Au présent, on utilise has avec he, she et it.'},
+    {id:'en-went',prompt:'Complète : Yesterday, I ___ to work. Utilise go au passé.',answer:'went',accept:['went','i went to work','yesterday i went to work'],hint:'Go a un passé irrégulier qui commence par w…',rule:'Le passé de go est went : I went to work.'}
+   ],
+   [
+    {id:'en-would',prompt:'Complète : If I had time, I ___ travel more. (Situation hypothétique.)',answer:'would',accept:['would','i would travel more','if i had time i would travel more'],hint:'On exprime ici une conséquence hypothétique avec w…',rule:'Dans cette construction hypothétique : if + prétérit, puis would + verbe.'},
+    {id:'en-since',prompt:'Choisis since ou for : I have lived here ___ 2020.',answer:'since',accept:['since','i have lived here since 2020'],hint:'2020 indique un point de départ, pas une durée.',rule:'Since introduit le point de départ ; for introduit une durée.'}
+   ]
+  ],
+  spanish:[
+   [
+    {id:'es-soy',prompt:'Complète : Yo ___ Alex. (Je suis Alex.) Réponds avec le mot manquant.',answer:'soy',accept:['soy','yo soy alex'],hint:'Pour présenter son identité avec yo, la forme commence par s…',rule:'Pour présenter son identité : yo soy Alex, avec le verbe ser.'},
+    {id:'es-estas',prompt:'Complète : Tú ___ aquí. (Tu es ici.) Réponds avec le mot manquant.',answer:'estás',accept:['estas','tu estas aqui'],hint:'Pour situer une personne, on utilise estar.',rule:'Avec tú, estar devient estás : Tú estás aquí. L’accent est sur á.'}
+   ],
+   [
+    {id:'es-hablamos',prompt:'Complète : Nosotros ___ español. Utilise hablar au présent.',answer:'hablamos',accept:['hablamos','nosotros hablamos espanol'],hint:'Avec nosotros, les verbes en -ar se terminent par -amos.',rule:'Hablar devient hablamos avec nosotros au présent.'},
+    {id:'es-estar',prompt:'Dans Estoy cansado, quel verbe est conjugué : ser ou estar ?',answer:'estar',accept:['estar','le verbe estar'],hint:'Estoy est la forme yo d’un des deux verbes.',rule:'Estoy vient de estar ; ici, la phrase exprime un état de fatigue.'}
+   ],
+   [
+    {id:'es-viajaria',prompt:'Complète : Si tuviera tiempo, ___ más. Utilise viajar au conditionnel avec yo.',answer:'viajaría',accept:['viajaria','viajaria mas','si tuviera tiempo viajaria mas'],hint:'Le conditionnel se forme avec l’infinitif et la terminaison -ía.',rule:'Pour yo, viajar au conditionnel devient viajaría.'},
+    {id:'es-estes',prompt:'Complète : Espero que tú ___ bien. Utilise estar au subjonctif présent.',answer:'estés',accept:['estes','espero que tu estes bien'],hint:'La forme tú au subjonctif se termine ici par -és.',rule:'Après espero que dans cette phrase, estar au subjonctif avec tú devient estés.'}
+   ]
+  ]
+ };
+ const labels=['bases','intermédiaire','défi'];
+ const langLabel=s=>s.language==='english'?'anglais':s.language==='spanish'?'espagnol':null;
+ function level(raw){
+  const t=normalize(raw).replace(/ en (anglais|espagnol)$/,'');
+  if(/^(je debute|je suis debutant|je suis debutante|debutant|debutante|je pars de zero|je suis novice|je suis mauvais|je suis mauvaise)$/.test(t))return 0;
+  if(/^(je connais les bases|je connais quelques bases|je suis intermediaire|intermediaire)$/.test(t))return 1;
+  if(/^(je suis avance|je suis avancee|avance|avancee)$/.test(t))return 2;
+  return null;
+ }
+ function seed(raw){
+  const t=normalize(raw),en=/\banglais\b/.test(t),es=/\bespagnol\b/.test(t);
+  return {language:en!==es?(en?'english':'spanish'):null,level:level(raw)??0,levelChosen:level(raw)!==null,cursor:0,exercise:null};
+ }
+ function start(subject){
+  const language=langLabel(subject);
+  if(language&&subject.levelChosen)return 'Nous travaillons l’'+language+' au niveau '+labels[subject.level]+'. Dites « Donne-moi un exercice » pour commencer.';
+  return language?'Nous travaillons l’'+language+'. Quel est votre niveau ? Vous pouvez dire « Je débute », puis « Donne-moi un exercice ». Ces exercices locaux couvrent les bases, un niveau intermédiaire et quelques défis.':'Quel sujet voulez-vous travailler ? Précisez par exemple l’anglais, l’espagnol ou une notion. Je proposerai un exercice local quand le sujet sera clair.';
+ }
+ function recognize(raw,subject){
+  const t=localVocabulary.commandText(raw),n=level(t);
+  if(seed(raw).language)return null; // An explicit language starts a fresh topic.
+  let action=null;
+  if(n!==null)action={action:'level',level:n};
+  else if(/^(donne (moi )?(un |des )?exercice(s)?|propose (moi )?(un )?exercice|un exercice|exercice|fais moi un exercice|un autre|un autre exercice|encore un exercice|continue|et ensuite|et apres|la suite)$/.test(t))action={action:'exercise'};
+  else if(/^(plus simple|plus facile|simplifie|c est trop dur|c est trop difficile|moins difficile)$/.test(t))action={action:'easier'};
+  else if(/^(plus difficile|plus dur|complique un peu|un defi)$/.test(t))action={action:'harder'};
+  else if(/^(un indice|donne (moi )?(un )?indice|aide moi|je ne sais pas|je sais pas|je n y arrive pas)$/.test(t))action={action:'hint'};
+  else if(/^(corrige|corrige moi|la correction|donne (moi )?(la )?(solution|reponse)|solution|quelle est la reponse)$/.test(t))action={action:'solution'};
+  else if(/^(pourquoi|et pourquoi|explique ca|explique cela|developpe|developpe un peu|precise|pour quelle raison|comment ca)$/.test(t))action={action:'explain'};
+  if(action){
+   if(!subject||subject.kind!=='learning')return {name:'learningMissing'};
+   return {name:'learningFollow',subject:{...subject,exercise:subject.exercise?{...subject.exercise}:null},...action};
+  }
+  // Only a short, explicit answer to the immediately pending exercise is graded.
+  if(subject?.kind==='learning'&&subject.exercise?.pending){
+   const e=find(subject),candidate=t.replace(/^(?:ma reponse est|je reponds|reponse|le mot est|le mot) /,'');
+   if(e&&(e.accept.includes(candidate)||/^[a-z]{1,24}$/.test(candidate)))return {name:'learningFollow',subject:{...subject,exercise:{...subject.exercise}},action:'answer',candidate};
+   if(/^(ma reponse est|je reponds|reponse|le mot est|le mot) /.test(t))return {name:'learningFollow',subject:{...subject,exercise:{...subject.exercise}},action:'answer',candidate};
+  }
+  return null;
+ }
+ function find(s){return banks[s.language]?.flat().find(e=>e.id===s.exercise?.id);}
+ function generate(s,lead=''){
+  const language=langLabel(s);
+  if(!language)return 'Quel sujet voulez-vous travailler ? Les exercices guidés disponibles couvrent l’anglais et l’espagnol. Pour un autre sujet, donnez une notion précise et un exemple à expliquer.';
+  const pool=banks[s.language][s.level],e=pool[s.cursor%pool.length];s.cursor=(s.cursor+1)%2;s.exercise={id:e.id,pending:true};
+  return lead+'Exercice d’'+language+' · '+labels[s.level]+'\n'+e.prompt+'\nVous pouvez demander « Un indice », « Plus simple » ou « La correction ».';
+ }
+ function respond(intent){
+  const s=intent.subject,language=langLabel(s);
+  switch(intent.action){
+   case 'level':s.level=intent.level;s.levelChosen=true;s.exercise=null;return 'Je garde '+(language?'l’'+language:'ce sujet')+' comme sujet. Niveau choisi : '+labels[s.level]+'. Dites « Donne-moi un exercice » pour commencer.';
+   case 'exercise':return generate(s);
+   case 'easier':s.level=Math.max(0,s.level-1);return generate(s,'On simplifie. ');
+   case 'harder':s.level=Math.min(2,s.level+1);return generate(s,'On augmente la difficulté dans les exercices disponibles. ');
+   case 'hint':{const e=find(s);return e&&s.exercise.pending?'Indice : '+e.hint+' Essayez le mot manquant, ou dites « Réponse : … ».':'Demandez un exercice pour obtenir un indice adapté.';}
+   case 'solution':{const e=find(s);if(!e)return 'Demandez un exercice avant sa correction.';s.exercise.pending=false;return 'Réponse attendue : '+e.answer+'. '+e.rule+' Expliquez la règle avec vos mots, ou demandez « Un autre exercice ».';}
+   case 'explain':{const e=find(s);return e?'Dans cet exercice : '+e.rule+' Voulez-vous un autre exemple ?':'Partir de votre niveau permet de choisir une difficulté adaptée. Dites « Donne-moi un exercice » pour essayer.';}
+   case 'answer':{const e=find(s);if(!e)return 'Quel exercice souhaitez-vous reprendre ?';if(e.accept.includes(intent.candidate)){s.exercise.pending=false;return 'Correct pour cet exercice : '+e.answer+'. '+e.rule+' Voulez-vous un autre exercice ou une version plus difficile ?';}return 'Ce n’est pas la réponse attendue à cet exercice. Indice : '+e.hint+' Réessayez ou demandez la correction.';}
+   default:return start(s);
+  }
+ }
+ return {seed,start,recognize,respond};
+}
+
+function createShortContext(normalize, now=()=>Date.now()){
+ let turns=[];
+ const coach=createLearningCoach(normalize);
+ const MAX_TURNS=4, TTL=5*60*1000;
+ const sensitive=s=>/(code\s+pin|carte\s+bancaire|phrase\s+secr[eè]te|mot\s+de\s+passe|cl[eé]\s+api|api\s*key|token|password|secret|sk-[a-z0-9])/i.test(s);
+ function reset(){turns=[]}
+ function prune(){const time=now();turns=turns.filter(x=>time-x.at<TTL).slice(-MAX_TURNS)}
+ function topic(raw){const t=normalize(raw);const types=[];
+  if(/\b(guerre|conflit|conflits)\b/.test(t))types.push('conflict');
+  if(/\b(projet|plan|objectif|objectifs|organise|organiser|organisation|planning|priorite|priorites|tache|taches)\b/.test(t))types.push('project');
+  if(/\b(anglais|espagnol|apprendre|apprentissage|exercice|exercices|revision|reviser|etudier|comprendre|enseigne|enseigner|lecon|lecons|cours)\b/.test(t))types.push('learning');
+  return !sensitive(raw)&&types.length===1?{kind:types[0],text:String(raw).trim().slice(0,500),...(types[0]==='learning'?coach.seed(raw):{})}:null;
+ }
+ function remember(intent, raw, reply){prune();let subject=null;
+ if(['recap','memoryClassify','memoryCandidate'].includes(intent.name)){if(sensitive(raw))reset();return;}
+  if(sensitive(raw)){reset();return}
+  if(intent.name==='clarification')subject=turns.at(-1)?.subject||null;
+  else if(intent.name==='analysis'&&intent.claim)subject={kind:'analysis',text:intent.claim.slice(0,500),basis:String(reply).includes('VIGILANCE :')?String(reply).split('VIGILANCE :')[1].split('TESTS CONTRADICTOIRES :')[0].trim().slice(0,700):''};
+  else if(intent.name==='topic'||intent.name==='learningFollow')subject=intent.subject;
+  else if(['status','memory','help','modules','time','emergency'].includes(intent.name))subject={kind:intent.name,text:''};
+  // Every new exchange supersedes the previous subject; unknown/ambiguous input invalidates it.
+  turns.push({subject,reply:String(reply).slice(0,1800),at:now()});turns=turns.slice(-MAX_TURNS);
+ }
+ function recentTopics(){prune();const unique=[];for(const turn of [...turns].reverse()){const subject=turn.subject;if(!subject||!['conflict','project','learning','analysis'].includes(subject.kind))continue;if(!unique.some(x=>x.kind===subject.kind&&x.text===subject.text))unique.push(subject);if(unique.length===4)break}return unique}
+ function recap(){const topics=recentTopics();if(!topics.length)return 'Aucun sujet récent exploitable dans cette session. Les notes du coffre restent privées et ne sont pas consultées.';return 'Sujets récents (mémoire temporaire uniquement) :\n'+topics.map((x,i)=>(i+1)+'. '+({conflict:'Conflit',project:'Projet',learning:'Apprentissage',analysis:'Analyse'}[x.kind])+ ' : '+x.text.slice(0,180)).join('\n')+'\nCes sujets expirent après cinq minutes et sont effacés au verrouillage.'}
+ function follow(raw){prune();const latest=turns.at(-1),s=latest?.subject,t=normalize(raw);
+  if(!s)return 'À quel sujet faites-vous référence ? Précisez l’affirmation ou la question à reprendre.';
+  const next=/^(et ensuite|continue|la suite|et apres)$/.test(localVocabulary.commandText(raw));
+  switch(s.kind){
+  case 'conflict':return 'Vous parlez de conflit : « '+s.text+' ». '+(next?'Précisons d’abord le conflit, le lieu et ce que vous voulez comprendre.':'Je demande une précision parce que ce message ne permet pas d’établir le conflit ni ses causes. De quel conflit parlez-vous ?')+' Je n’ai pas vérifié l’actualité en ligne.';
+  case 'project':return 'Concernant « '+s.text+' » : '+(next?'quelle première action pouvez-vous réaliser avec vos moyens actuels ?':'l’objectif, les contraintes et l’échéance permettent de choisir une action adaptée. Quel point souhaitez-vous examiner ?');
+  case 'learning':return 'Concernant « '+s.text+' » : '+(next?'essayez un court exemple et expliquez votre raisonnement.':'partir de ce que vous comprenez déjà aide à cibler la difficulté. Quel point vous bloque ?');
+  case 'analysis':return 'Nous examinons « '+s.text+' ». '+(next?'La prochaine étape est de chercher une source datée et un contre-exemple.':'Atlas applique des règles de prudence ; sa classification ne démontre pas la vérité de cette affirmation.')+'\n'+(s.basis||'Il faut des éléments vérifiables pour aller plus loin.');
+  case 'memory':return 'Vous parlez de la mémoire : les notes restent dans le coffre chiffré et se consultent après déverrouillage. Le contexte de discussion est temporaire et s’efface au verrouillage.';
+  case 'status':return 'Vous demandez l’état du Hub. Ce statut décrit l’interface et ses réglages ; il ne prouve pas qu’un serveur IA est connecté. Quel élément voulez-vous comprendre ?';
+  case 'help':case 'modules':return 'Vous parlez des fonctions du Hub. Voulez-vous préciser un module ou une commande à expliquer ?';
+  case 'time':return 'Vous parlez de l’heure : elle provient de l’horloge de votre appareil.';
+  case 'emergency':return 'Vous parlez d’urgence. Quelle est la situation et êtes-vous en sécurité ? Ce Hub ne contacte pas les secours.';
+  default:return 'Quel sujet souhaitez-vous reprendre ?';
+  }
+ }
+ function learningIntent(raw){prune();if(sensitive(raw)){reset();return null;}return coach.recognize(raw,turns.at(-1)?.subject);}
+ function learn(intent){return coach.respond(intent);}
+ function startLearning(subject){return coach.start(subject);}
+ return {reset,topic,remember,follow,recap,learningIntent,learn,startLearning};
+}
+
+// Exact command families. No fuzzy match, model training, or mutation of free text.
+const localVocabulary=(()=>{
+ function commandText(raw){
+  let t=normalizeInput(raw);
+  t=t.replace(/^(?:bonjour|salut|bonsoir) astor /,'').replace(/^astor /,'');
+  t=t.replace(/^(?:s il te plait|s il vous plait) /,'');
+  t=t.replace(/^(?:est ce que tu peux|est ce que vous pouvez|peux tu|pourrais tu|pouvez vous|pourriez vous|tu peux|je voudrais que tu|j aimerais que tu) /,'');
+  t=t.replace(/^astor /,'').replace(/ (?:s il te plait|s il vous plait|stp|svp)$/,'').trim();
+  t=t.replace(/^me (donner|dire|montrer|presenter) /,(_,verb)=>verb+' moi ');
+  const verbs={donner:'donne',dire:'dis',afficher:'affiche',montrer:'montre',lister:'liste',presenter:'presente',expliquer:'explique',ouvrir:'ouvre',consulter:'consulte',verrouiller:'verrouille',fermer:'ferme',refermer:'referme',selectionner:'selectionne',choisir:'choisis',preciser:'precise',developper:'developpe',continuer:'continue',oublier:'oublie',aider:'aide'};
+  return t.replace(/^[a-z]+/,word=>verbs[word]||word);
+ }
+ const families={
+  status:['statut','etat','quel est ton etat','quel est ton statut','comment va le systeme','etat du systeme','donne moi ton statut','donne ton statut','donne moi le statut','affiche ton statut','affiche le statut','montre ton statut','montre moi ton statut','fais le point','tu es la','es tu la','tu fonctionnes','es tu disponible'],
+  time:['heure','quelle heure est il','il est quelle heure','quelle heure il est','quelle heure est ce','donne moi l heure','donne l heure','dis moi l heure','dis l heure','affiche l heure','montre moi l heure','tu as l heure','dis moi quelle heure il est','dis moi quelle heure est il'],
+  help:['aide','help','aide moi','besoin d aide','j ai besoin d aide','que peux tu faire','qu est ce que tu sais faire','qu est ce que tu peux faire','quelles sont tes commandes','liste des commandes','liste les commandes','montre les commandes','explique tes fonctions','comment ca marche','comment utiliser astor'],
+  memory:['memoire','mes notes','mon coffre','ouvre la memoire','ouvre ma memoire','ouvre le coffre','ouvre mon coffre','ouvre mes notes','consulte la memoire','consulte mes notes','montre la memoire','montre moi la memoire','montre ma memoire','montre moi ma memoire','montre mes notes','affiche mes notes','montre moi mes notes','montre moi le coffre','montre moi mon coffre','etat de la memoire','etat du coffre'],
+  modules:['modules','module','liste les modules','liste des modules','quels sont les modules','tes modules','tes systemes','liste les systemes','montre tes modules','presente tes modules','qui compose ton equipe','ton equipe'],
+  resetContext:['oublie le sujet','nouveau sujet','efface le contexte','changeons de sujet','on change de sujet','repartons de zero','recommencons la discussion','oublie notre conversation','efface le contexte de discussion'],
+  emergency:['urgence','au secours','sos','danger immediat','j ai besoin de secours'],
+  lock:['verrouille','verrouiller','verrouille le hub','verrouille astor','verrouillage','ferme le hub','ferme astor','ferme la session','verrouille la session','verrouille l application','verrouille le systeme'],
+  lockMemory:['verrouille la memoire','verrouiller la memoire','verrouille ma memoire','verrouille le coffre','verrouille mon coffre','referme le coffre','referme la memoire'],
+  clarification:['et pourquoi','pourquoi','continue','explique ca','explique cela','et ensuite','pour quelle raison','comment ca','developpe','developpe un peu','peux tu preciser','precise','la suite','et apres'],
+  identity:['qui es tu','presente toi','quel est ton role','qui est astor'],
+  security:['niveau de securite','quel est ton niveau de securite','affiche ton niveau de securite','comment sont protegees mes notes','comment est protege le coffre'],
+  voiceHelp:['tu m entends','est ce que tu m entends','comment utiliser le micro','comment te parler','comment fonctionne la dictee']
+ };
+ const commands=new Map();Object.entries(families).forEach(([name,phrases])=>phrases.forEach(phrase=>commands.set(phrase,name)));
+ function intent(raw){
+  const t=commandText(raw),name=commands.get(t);
+  if(name)return {name};
+  const module=t.match(/^(?:(?:passe a|passe sur|parle avec|parle a|selectionne|choisis|module) )?(astor|eve|hades|atlas|orpheus|orphee)$/);
+  if(module)return {name:'module',module:module[1]==='orphee'?'ORPHEUS':module[1].toUpperCase()};
+  if(/^(bonjour|salut|bonsoir|hello|coucou)( astor)?$/.test(t))return {name:'discussion',text:t};
+  if(/^(merci|merci beaucoup|merci bien|c est gentil|super merci)( astor)?$/.test(t))return {name:'discussion',text:'merci'};
+  return null;
+ }
+ function analysis(raw){
+  const m=String(raw).match(/^\s*(?:astor[\s,:]+)?(?:(?:s['’]il te pla[iî]t|s['’]il vous pla[iî]t)[,\s]+)?(?:(?:peux[- ]tu|pourrais[- ]tu|pouvez[- ]vous|pourriez[- ]vous|tu peux|est[- ]ce que (?:tu peux|vous pouvez)|je voudrais que tu|j[’']aimerais que tu)\s+)?(?:analyse[rz]?|v[ée]rifi(?:e|er)|examin(?:e|er)|contr[oô]l(?:e|er))\b\s*(?:(?:cette|cet|ce)\s*(?:affirmation|raisonnement|hypoth[èe]se|id[ée]e)\s*)?[:—-]?\s*(.*)$/is);
+  return m?{name:'analysis',claim:m[1].trim()}:null;
+ }
+ return {intent,analysis,commandText};
+})();
+
+const shortContext=createShortContext(normalizeInput);
+function classifyMemory(raw){
+ const original=String(raw).trim();
+ const t=normalizeInput(original);
+ const protectedPattern=/(phrase\s+secrete|mot\s+de\s+passe|cle\s+api|api\s*key|token|password|secret|sk-[a-z0-9]|code\s+pin|carte\s+bancaire)/i;
+ const forget=/\b(oublie|efface|supprime|ne retiens pas)\b/.test(t);
+ const explicit=/\b(souviens toi|souviens t en|memorise|retiens|garde en memoire|rappelle toi)\b/.test(t);
+ if(protectedPattern.test(t))return {kind:'protected',label:'PROTÉGÉE',detail:'Information potentiellement sensible : elle ne sera ni ajoutée au contexte conversationnel ni enregistrée automatiquement.'};
+ if(forget)return {kind:'forget',label:'À OUBLIER',detail:'Demande d’oubli détectée : le contexte temporaire peut être effacé, sans suppression silencieuse du coffre.'};
+ if(explicit)return {kind:'candidate',label:'À MÉMORISER — CONFIRMATION REQUISE',detail:'Intention de mémorisation détectée. V3.9.2 ne crée aucune mémoire durable automatiquement ; utilisez le coffre et confirmez explicitement l’enregistrement.'};
+ if(!original||original.length<4)return {kind:'uncertain',label:'INCERTAINE',detail:'Information insuffisante pour décider quoi en faire.'};
+ return {kind:'temporary',label:'TEMPORAIRE',detail:'Utilisable dans le contexte court uniquement. Expiration et effacement suivent les règles de session existantes.'};
+}
+window.astorClassifyMemory=classifyMemory;
+function recognizeIntent(raw){
+ let t=localVocabulary.commandText(raw);
+ // V3.9.2: corrections courantes de dictée, limitées aux commandes explicites.
+ // Ne jamais modifier raw : il reste disponible pour l'analyse et l'affichage.
+ if(/^(?:la |le |mon |ton )?(?:statue|statu|statuts|status)(?: du systeme| d astor)?$/.test(t))t='statut';
+ if(/^(?:donne moi |affiche |montre moi )?(?:le |ton )?(?:statue|statu|status)$/.test(t))t='statut';
+ if(/^(?:explique autrement|reformule|redis autrement|peux tu reformuler)$/.test(t))t='explique cela';
+ if(/^(?:poursuis|vas y continue|on continue)$/.test(t))t='continue';
+ if(/^(?:et apres|quelle est la suite)$/.test(t))t='et ensuite';
+ if(/^(?:j ai dit |je voulais dire )(?:statue|statu|status|statut)$/.test(t))t='statut';
+ if(/^(classe (cette )?(information|memoire)|quel type de memoire)(?: |$)/.test(t)){const payload=String(raw).replace(/^\s*(?:astor[\s,:]+)?(?:classe\s+(?:cette\s+)?(?:information|mémoire)|quel\s+type\s+de\s+mémoire)\s*[:—-]?\s*/i,'').trim();return {name:'memoryClassify',payload};}
+ if(/^(souviens toi|souviens t en|memorise|retiens|garde en memoire|rappelle toi)\b/.test(t))return {name:'memoryCandidate',payload:String(raw)};
+
+ if(/^(resume notre discussion|recapitule notre discussion|quels sujets avons nous abordes|rappelle les sujets)$/.test(t))return {name:'recap'};
+ const expanded=localVocabulary.intent(t);if(expanded){if(expanded.name==='clarification'||(expanded.name==='help'&&t==='aide moi')){const contextual=shortContext.learningIntent(raw);if(contextual&&contextual.name==='learningFollow')return contextual;}return expanded;}
+ const analysis=localVocabulary.analysis(raw);if(analysis)return analysis;
+ const learning=shortContext.learningIntent(raw);if(learning)return learning;
+ if(/\b(?:ne|n)\b.*\bpas\b/.test(t) || /\b(?:pas (?:une|d une|d|en)|sans|aucune) urgence\b/.test(t))return {name:'unknown'};
+ if(/^(oublie le sujet|nouveau sujet|efface le contexte)$/.test(t))return {name:'resetContext'};
+ if(/^(verrouille|verrouiller|verrouille le hub|verrouille astor|verrouillage|ferme le hub)$/.test(t))return {name:'lock'};
+ if(/^(verrouille|verrouiller) (la )?memoire$/.test(t))return {name:'lockMemory'};
+ if(/\burgence\b/.test(t))return {name:'emergency'};
+ if(/\b(musique|audio|orpheus|lecteur)\b/.test(t)&&/\b(pause|stop|arrete|lecture|joue|reprends|lance)\b/.test(t)&&!/\b(ne|n|pas|jamais|sans)\b/.test(t))return {name:'media'};
+ if(/^(statut|etat|quel est ton etat|quel est ton statut|comment va le systeme|etat du systeme|donne moi ton statut)$/.test(t))return {name:'status'};
+ if(/^(aide|help|aide moi|que peux tu faire|quelles sont tes commandes|liste des commandes)$/.test(t))return {name:'help'};
+ if(/^(memoire|ouvre (la )?memoire|consulte (la )?memoire|montre (moi )?(la |ma )?memoire|etat de la memoire)$/.test(t))return {name:'memory'};
+ if(/^(heure|quelle heure est il|donne moi l heure)$/.test(t))return {name:'time'};
+ if(/^(modules|module|liste (les |des )?modules|quels sont les modules)$/.test(t))return {name:'modules'};
+ if(/^(analyse|analyser|verifie|verifier|examine|examiner)\b/.test(t)){
+  const claim=String(raw).replace(/^\s*(?:astor[\s,:]+)?(?:analyse[rz]?|v[ée]rifi(?:e|er)|examin(?:e|er))\b\s*(?:(?:cette|cet|ce|l[’'])\s*(?:affirmation|raisonnement|hypoth[èe]se)\s*)?[:—-]?\s*/i,'').trim();
+  return {name:'analysis',claim};
+ }
+ if(/^(et pourquoi|pourquoi|continue|explique ca|explique cela|et ensuite)$/.test(t))return {name:'clarification'};
+ if(/^(bonjour|salut|bonsoir|hello|merci|merci astor)$/.test(t))return {name:'discussion',text:t};
+ const subject=shortContext.topic(raw);if(subject)return {name:'topic',subject};
+ return {name:'unknown'};
+}
+function localIntentResponse(intent){
+ switch(intent.name){
+ case 'memoryClassify':case 'memoryCandidate':{const c=classifyMemory(intent.payload);return 'GESTIONNAIRE MÉMOIRE — '+c.label+'\n'+c.detail;}
+ case 'recap':return shortContext.recap();
+ case 'learningMissing':return 'Quel sujet souhaitez-vous reprendre ? Précisez par exemple « Je veux apprendre l’anglais », puis votre niveau.';
+ case 'learningFollow':return shortContext.learn(intent);
+ case 'module':return active+' : '+descriptions[active]+' Choisi pour cette session ; réponses locales.';
+ case 'identity':return 'Je suis Astor. Je coordonne les modules, les commandes locales et votre coffre chiffré. Dans cette version, les réponses suivent des règles locales ; aucune IA distante n’est connectée.';
+ case 'security':return 'Accès par biométrie forte Android, verrouillage en arrière-plan et après le délai choisi. Les notes restent chiffrées dans un coffre à phrase secrète séparée. Les captures sont bloquées. La dictée utilise le micro après votre autorisation. Toute biométrie forte enregistrée sur le téléphone peut ouvrir Astor ; l’identification vocale n’est pas intégrée. Ces protections ne constituent pas une certification de sécurité.';
+ case 'voiceHelp':return 'Touchez le micro dans Accueil, puis parlez en français. Astor transcrit une courte demande avec le moteur local disponible sur le téléphone. Relisez puis touchez Envoyer. Touchez de nouveau le micro pour annuler ; aucune écoute permanente.';
+ case 'resetContext':shortContext.reset();mnemosyneContextId=null;conversation.length=0;return 'Contexte de discussion effacé. Quel sujet souhaitez-vous aborder ?';
+ case 'media':if($('localAudio').disabled)return 'ORPHEUS : le lecteur intégré n’est pas disponible dans cette version. Ouvrez Spotify ou YouTube depuis Média. La musique d’entrée se règle dans Paramètres.';mediaCommand(intent.raw);return 'ORPHEUS : commande envoyée au lecteur audio local.';
+ case 'lock': window.dispatchEvent(new Event('astor-lock-request'));return 'Session verrouillée.';
+ case 'lockMemory':lock();return 'Mémoire verrouillée.';
+ case 'emergency':return 'HADES : en cas de danger immédiat en France, appelez le 112. Ce prototype ne contacte pas les secours. Aucune action sur le téléphone ne sera exécutée.';
+ case 'status':return 'Interface active. Mémoire '+(vaultKey?'déverrouillée':'verrouillée')+'. IA distante '+($('enableAI').checked?'autorisée ; connexion à vérifier.':'désactivée.');
+ case 'help':return 'Vous pouvez dire : « Donne-moi ton statut », « Il est quelle heure ? », « Montre mes notes », « Présente tes modules », « Passe à Eve », « Peux-tu vérifier cette affirmation : … », « Je voudrais réviser l’anglais », « Changeons de sujet » ou « Verrouille le coffre ». Les notes exigent toujours leur phrase secrète. Reconnaissance locale par règles, contexte de quatre échanges maximum, effacé au verrouillage.';
+ case 'memory':return vaultKey?'Mémoire déverrouillée. Consultez les notes uniquement dans le panneau mémoire sécurisé.':'Mémoire verrouillée. Déverrouillez-la pour y accéder.';
+ case 'time':return 'Heure locale : '+new Date().toLocaleString('fr-FR');
+ case 'modules':return Object.entries(descriptions).map(([k,v])=>k+' : '+v).join('\n');
+ case 'analysis':return intent.claim?(window.astorAtlasAnalyzeLocal?window.astorAtlasAnalyzeLocal(intent.claim):'Atlas local indisponible.'):'Quelle affirmation souhaitez-vous analyser ?';
+ case 'clarification':return shortContext.follow(intent.raw);
+ case 'topic':return intent.subject.kind==='conflict'?'De quel conflit parlez-vous ? Je peux vous aider à structurer les questions, mais je n’ai pas vérifié l’actualité en ligne.':intent.subject.kind==='project'?'Quel est l’objectif de ce projet, son échéance et vos moyens disponibles ?':shortContext.startLearning(intent.subject);
+ case 'discussion':return intent.text.startsWith('merci')?'Avec plaisir. Quelle est la prochaine étape ?':'Bonjour. ASTOR est actif en mode local. Quel sujet souhaitez-vous aborder ?';
+ default:return null;
+ }
+}
+function localBrain(s){const t=s.toLocaleLowerCase('fr');if(/^(bonjour|salut|bonsoir|hello)[ !?.]*$/.test(t))return 'Bonjour. ASTOR est actif en mode local. Comment puis-je vous aider ?';if(/(qui es[- ]tu|ton rôle|que peux[- ]tu faire)/.test(t))return 'Je suis ASTOR, assistant hybride : commandes locales hors ligne, mémoire chiffrée sur demande et raisonnement distant uniquement si un serveur IA est configuré.';if(/(explique|apprendre|comprendre|exercice|réviser)/.test(t)&&active==='ASTOR')return 'EVE suggère : commençons par ce que vous savez déjà. Quel point précis souhaitez-vous comprendre ?';if(/(vérifie|source|preuve|est-ce vrai|fiable)/.test(t)&&active==='ASTOR')return 'ATLAS suggère : identifions la source, la date et les faits vérifiables. Sans accès à une source, je ne peux pas confirmer cette affirmation.';if(/(plan|projet|organise|priorité|objectif)/.test(t)&&active==='ASTOR')return 'ASTOR : précisons objectif, contraintes et première action concrète. Quelle échéance et quels moyens sont disponibles ?';if(active==='EVE')return 'EVE (mode local) : quelle est votre hypothèse ? Expliquez votre raisonnement et nous identifierons les points à éclaircir. Pour une analyse approfondie, connectez un moteur IA.';if(active==='ATLAS')return window.astorAtlasAnalyzeLocal?window.astorAtlasAnalyzeLocal(s):'ATLAS : analyse locale indisponible.';if(active==='HADES')return 'HADES (mode conseil uniquement, aucune commande système ni destruction) : précisez le danger et votre sécurité immédiate. En cas de danger imminent en France, contactez le 112. Ce Hub ne contacte pas les secours.';if(active==='ORPHEUS')return 'ORPHEUS : lecteur MP3 local disponible. Pour YouTube depuis un fichier Android, ouvrez la vidéo dans YouTube.';return 'Mode local actif : je peux gérer les modules, l’heure, le statut, la mémoire déverrouillée et les commandes audio. Pour répondre librement à cette demande, il faut connecter un serveur IA sécurisé.'}let mnemosyneContextId=null;
+function mnemosyneLocalResponse(raw){
+ const original=(raw||'').toString();
+ const follow=normalizeInput(original);
+ // Contextual follow-up: "et après ?", "et cette version ?", "et lui/elle ?"
+ if(mnemosyneContextId && /^(et |alors |ensuite|apres|continue|pourquoi|cette version|ce module)/.test(follow)){
+   const previous=window.ASTOR_MNEMOSYNE&&window.ASTOR_MNEMOSYNE.get(mnemosyneContextId);
+   if(previous){
+     if(/apres|ensuite|version suivante/.test(follow) && mnemosyneContextId.startsWith('version.')){
+       const order=['version.383','version.390','version.391','version.3922'];
+       const i=order.indexOf(mnemosyneContextId);
+       const next=i>=0&&i<order.length-1?window.ASTOR_MNEMOSYNE.get(order[i+1]):null;
+       if(next){mnemosyneContextId=next.id;return 'MNÉMOSYNE · '+next.title+' — '+next.content+' [Source : '+next.source+' · confiance : '+next.confidence+']';}
+       return "MNÉMOSYNE · Je n’ai pas de version suivante validée dans ma base locale.";
+     }
+     return 'MNÉMOSYNE · Contexte : '+previous.title+' — '+previous.content+' [Source : '+previous.source+' · confiance : '+previous.confidence+']';
+   }
+ }
+ const n=normalizeInput(raw);
+ if(!/(qui est|quel est|quelle est|role|fonction|a quoi sert|parle moi|mnemosyne|version|qualite|tracabilite)/.test(n))return null;
+ if(!window.ASTOR_MNEMOSYNE)return null;
+ const pairs=[['atlas','atlas.role'],['eve','eve.role'],['hades','hades.role'],['orpheus','orpheus.role'],['astor','astor.role']];
+ let id=null;
+ for(const [word,key] of pairs){if(n.includes(word)){id=key;break}}
+ if(!id&&n.includes('memoire'))id='memory.rule';
+ if(!id&&n.includes('securite'))id='security.rule';
+ if(!id&&(n.includes('qualite')||n.includes('tracabilite')))id='quality.rule';
+ const versionKey=n.replace(/[^0-9]/g,'');
+ if(!id&&(versionKey.includes('383')))id='version.383';
+ if(!id&&(versionKey.includes('390')))id='version.390';
+ if(!id&&(versionKey.includes('391')))id='version.391';
+ if(!id&&(versionKey.includes('3922')))id='version.3922';
+ if(!id)return n.includes('mnemosyne')?'MNÉMOSYNE est active, mais cette information n’est pas encore présente dans ma base locale.':null;
+ const hit=window.ASTOR_MNEMOSYNE.get(id);
+ if(!hit)return null;
+ mnemosyneContextId=id;
+ return 'MNÉMOSYNE · '+hit.title+' — '+hit.content+' [Source : '+hit.source+' · confiance : '+hit.confidence+']';
+}function aiReady(){return location.protocol==='https:'||(location.protocol==='http:'&&['localhost','127.0.0.1'].includes(location.hostname))}$('enableAI').addEventListener('change',()=>{if(!$('enableAI').checked){$('shareContext').checked=false;$('sendHistory').checked=false;}$('aiStatus').textContent=$('enableAI').checked?'Autorisation activée ; connexion possible uniquement avec une passerelle privée configurée.':'IA distante désactivée — mode local';});$('chatForm').onsubmit=async e=>{e.preventDefault();if(document.body.classList.contains('astor-locked'))return;const requestEpoch=sessionEpoch;const s=$('message').value.trim();if(!s)return;add(s,'user');$('message').value='';if(document.body.classList.contains('astor-locked'))return;const intent=recognizeIntent(s);intent.raw=s;let response;let replyRemote=false;const blockedResponse=routeIntent(intent);const mnemoResponse=blockedResponse===null&&['unknown','clarification'].includes(intent.name)?mnemosyneLocalResponse(s):null;const localResponse=blockedResponse!==null?blockedResponse:(mnemoResponse!==null?mnemoResponse:localIntentResponse(intent));if(intent.name==='lock'||intent.name==='lockMemory')return;if(localResponse!==null){response=localResponse;if(mnemoResponse!==null)setRouteStatus('Réponse : MNÉMOSYNE · base locale');}else if(!aiReady()||!$('enableAI').checked){response=localBrain(s);$('aiStatus').textContent='Cerveau local actif · IA distante non connectée'}else{try{if(!confirm('Transmettre cette question à la passerelle IA privée ? '+($('sendHistory').checked?'Les derniers échanges seront également transmis.':'Aucun historique ne sera transmis.')))throw Error('Envoi annulé');response=await requestAI(s);replyRemote=true;if(requestEpoch===sessionEpoch&&!document.body.classList.contains('astor-locked'))setRouteStatus('Réponse : '+active+' · IA distante');$('aiStatus').textContent='Connexion IA opérationnelle'}catch(err){response=localBrain(s);$('aiStatus').textContent='Mode local · IA distante indisponible ('+err.message+')'}}if(requestEpoch!==sessionEpoch||document.body.classList.contains('astor-locked'))return;if(intent.blocked)shortContext.reset();else shortContext.remember(intent,s,response);record('user',s);record('assistant',response);add(response,'system',active+(replyRemote?' · IA distante':' · mode local'))};function tick(){$('clock').textContent=new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+' · LOCAL'}tick();setInterval(tick,30000);const mediaPlayer=$('audioPlayer');let audioObjectURL=null;let youtubeVideoId=null;function mediaStatus(message){$('mediaStatus').textContent=message}function stopMedia(){if(!moduleAllowed('ORPHEUS')){mediaStatus('Orpheus est désactivé.');return}mediaPlayer.pause();try{mediaPlayer.currentTime=0}catch{}mediaStatus('Lecture locale arrêtée.')}function playMedia(){if(!moduleAllowed('ORPHEUS')){mediaStatus('Orpheus est désactivé.');return}if(!mediaPlayer.src){mediaStatus('Sélectionnez un fichier audio local.');return}mediaPlayer.play().then(()=>{if(moduleAllowed('ORPHEUS'))mediaStatus('Lecture audio locale.');else mediaPlayer.pause()}).catch(()=>mediaStatus('Lecture bloquée : touchez le lecteur pour autoriser.'))}function pauseMedia(){if(!moduleAllowed('ORPHEUS')){mediaStatus('Orpheus est désactivé.');return}mediaPlayer.pause();mediaStatus('Lecture en pause.')}function mediaCommand(text){if(!moduleAllowed('ORPHEUS'))return false;const t=normalizeInput(text);if(/\b(ne|n|pas|jamais|sans)\b/.test(t))return false;if(!/(musique|audio|orpheus|lecteur)/.test(t))return false;if(/(pause|arrete temporairement)/.test(t)){pauseMedia();return true}if(/(stop|arrête|arrete)/.test(t)){stopMedia();return true}if(/(lecture|joue|reprends|lance)/.test(t)){playMedia();return true}return false}$('toggleMedia').onclick=()=>{const hidden=$('mediaBody').classList.toggle('hidden');$('toggleMedia').textContent=hidden?'Déplier':'Replier';$('toggleMedia').setAttribute('aria-expanded',String(!hidden))};$('localAudio').onchange=e=>{if(!moduleAllowed('ORPHEUS')){mediaStatus('Orpheus est désactivé.');return}const file=e.target.files?.[0];if(audioObjectURL){URL.revokeObjectURL(audioObjectURL);audioObjectURL=null}mediaPlayer.removeAttribute('src');mediaPlayer.load();if(!file)return;if(file.type&&!file.type.startsWith('audio/')){mediaStatus('Ce fichier ne semble pas être audio.');return}audioObjectURL=URL.createObjectURL(file);mediaPlayer.src=audioObjectURL;mediaStatus('Fichier local prêt : '+file.name)};$('playMedia').onclick=playMedia;$('pauseMedia').onclick=pauseMedia;$('stopMedia').onclick=stopMedia;$('mediaVolume').oninput=e=>{mediaPlayer.volume=Number(e.target.value)/100};mediaPlayer.volume=.7;mediaPlayer.addEventListener('error',()=>mediaStatus('Fichier audio illisible ou format non pris en charge par ce navigateur.'));mediaPlayer.addEventListener('ended',()=>mediaStatus('Lecture terminée.'));window.addEventListener('pagehide',()=>{mediaPlayer.pause();if(audioObjectURL)URL.revokeObjectURL(audioObjectURL)});function youtubeId(raw){raw=raw.trim();if(/^[A-Za-z0-9_-]{11}$/.test(raw))return raw;try{const u=new URL(raw);const host=u.hostname.toLowerCase();if(host==='youtu.be'||host==='www.youtu.be')return u.pathname.split('/')[1];if(['youtube.com','www.youtube.com','m.youtube.com','music.youtube.com','youtube-nocookie.com','www.youtube-nocookie.com'].includes(host)){if(u.pathname==='/watch')return u.searchParams.get('v');const m=u.pathname.match(/^\/(?:shorts|embed|live)\/([^/]+)/);return m?.[1]}}catch{}return null}function updateYoutubeLink(id){$('youtubeExternal').href='https://www.youtube.com/watch?v='+encodeURIComponent(id)}function originWarning(){const local=!/^https?:$/.test(location.protocol);$('youtubeOriginWarning').textContent=local?'Mode fichier Android détecté : le lecteur YouTube intégré peut afficher erreur 153. Hébergez ASTOR sur HTTPS ou ouvrez la vidéo directement sur YouTube.':location.protocol==='http:'&&location.hostname!=='localhost'?'HTTP détecté : préférez HTTPS pour les intégrations.':'Origine Web détectée. Si erreur 153 persiste, ouvrez la vidéo sur YouTube.'}originWarning();$('youtubeExternal').addEventListener('click',e=>{const id=youtubeId($('youtubeURL').value);if(id&&/^[A-Za-z0-9_-]{11}$/.test(id))updateYoutubeLink(id)});$('loadYouTube').onclick=()=>{if(!moduleAllowed('ORPHEUS')){mediaStatus('Orpheus est désactivé.');return}const id=youtubeId($('youtubeURL').value);if(!id||!/^[A-Za-z0-9_-]{11}$/.test(id)){mediaStatus('Lien YouTube invalide.');return}youtubeVideoId=id;updateYoutubeLink(id);originWarning();if(!/^https?:$/.test(location.protocol)){mediaStatus('Mode fichier Android : utilisez « Ouvrir cette vidéo dans YouTube ». Pour intégrer le lecteur, publiez sur HTTPS.');$('youtubeEmbed').removeAttribute('src');return}$('youtubeEmbed').src='https://www.youtube-nocookie.com/embed/'+encodeURIComponent(id)+'?playsinline=1&origin='+encodeURIComponent(location.origin);mediaStatus('Vidéo demandée. Si le lecteur affiche erreur 153 ou refuse la lecture, utilisez le lien YouTube externe.')} ;$('spotifyConnect').onclick=()=>{if(!moduleAllowed('ORPHEUS')){mediaStatus('Orpheus est désactivé.');return}const id=$('spotifyClientId').value.trim();if(!/^[a-zA-Z0-9]{20,64}$/.test(id)){mediaStatus('Saisissez un Client ID Spotify public valide.');return}if(!window.isSecureContext||!/^https?:$/.test(location.protocol)){mediaStatus('Spotify OAuth requiert un hébergement HTTPS et une URI de redirection enregistrée.');return}mediaStatus('Client ID renseigné. OAuth PKCE non activé : configurez URI de redirection, échange de code et gestion sécurisée des jetons côté application. Aucun secret ne doit être saisi ici.');};$('voice').onclick=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){add('Reconnaissance vocale indisponible dans ce navigateur.');return}const r=new SR();r.lang='fr-FR';r.interimResults=false;r.onresult=e=>{const spoken=e.results[0][0].transcript;if(mediaCommand(spoken)){selectModule('ORPHEUS');setRouteStatus('Réponse : ORPHEUS · commande vocale locale');add('ORPHEUS : '+spoken)}else{$('message').value=spoken;$('message').focus()}};r.onerror=()=>add('Dictée vocale indisponible ou refusée.');try{r.start()}catch{add('Impossible de démarrer le microphone.')}};})();
+</script><script id="astorNativeSecurity">
+(()=>{'use strict';
+const lockNative=()=>{document.body.classList.add('astor-locked');document.getElementById('lockMemory').click();location.href='astor-native://lock'};
+window.addEventListener('astor-lock-request',lockNative);
+let lastSignal=0;['pointerdown','keydown','input'].forEach(event=>document.addEventListener(event,()=>{const now=Date.now();if(now-lastSignal>1000&&!document.body.classList.contains('astor-locked')){lastSignal=now;location.href='astor-native://activity'}},{passive:true}));
+document.addEventListener('visibilitychange',()=>{if(document.hidden)lockNative()});
+const localOnly=['enableAI','testAI','aiEndpoint','sendHistory','shareContext','voice','localAudio','loadYouTube','youtubeURL','spotifyConnect','spotifyClientId'];
+localOnly.forEach(id=>{const el=document.getElementById(id);if(el){el.disabled=true;if(el.type==='checkbox')el.checked=false}});
+document.getElementById('aiStatus').textContent='Version Android de test : réponses locales uniquement.';
+document.getElementById('mediaStatus').textContent='Sélection audio et dictée : intégration Android à venir. Les liens externes s’ouvrent dans votre navigateur.';
+document.getElementById('consoleRouteStatus').textContent='Accès Android validé · mémoire chiffrée verrouillée';
+})();
+</script><script id="atlasV2Logic">(()=>{'use strict';
+const $=id=>document.getElementById(id), input=$('atlasInput'), evidence=$('atlasEvidence'), result=$('atlasResult');
+function analyzeClaim(claim,proof=''){
+ const t=claim.normalize('NFC').toLocaleLowerCase('fr-FR');
+ const absolute=/\b(tous|toutes|tout le monde|toujours|jamais|aucun|aucune|impossible|certainement|forc[eé]ment|100\s*%)\b/u.test(t);
+ const causal=/\b(parce que|donc|prouve que|entra[iî]ne|cause|implique|gr[aâ]ce [aà])\b/u.test(t);
+ const tentative=/\b(peut[- ]être|pourrait|probable|hypoth[eè]se|semble|possible|supposons)\b/u.test(t);
+ const future=/\b(demain|avenir|futur|pr[eé]vision|sc[eé]nario|risque|[aà] venir)\b/u.test(t);
+ const contradiction=/\b(mais|pourtant|cependant|alors que|en revanche|contradictoire)\b/u.test(t)||(/\b(toujours|tous|toutes)\b/u.test(t)&&/\b(jamais|aucun|aucune)\b/u.test(t));
+ const internet=/\b(internet|sur le web|en ligne)\b/u.test(t);
+ const truth=/\b(vrai|vraie|vrais|vraies|fiable|fiables|exact|exactes)\b/u.test(t);
+ const evidenceMention=/(https?:\/\/|source|[eé]tude|rapport|mesure|journal|test|preuve|observation|donn[eé]e|statistique)/iu.test(proof);
+ let classification=future?'SCÉNARIO / PRÉVISION':tentative?'HYPOTHÈSE':'AFFIRMATION NON VÉRIFIÉE';
+ const alerts=[];
+ if(absolute){classification='GÉNÉRALISATION À EXAMINER';alerts.push('Terme absolu détecté : une exception peut invalider la proposition.');}
+ if(internet&&truth&&absolute){alerts.push('Les contenus publiés sur Internet ne sont pas tous fiables : il faut examiner chaque source individuellement.');}
+ if(contradiction)alerts.push('Marqueur d’opposition ou termes potentiellement incompatibles : vérifier si les propositions portent sur le même sujet, au même moment et dans les mêmes conditions.');
+ if(causal)alerts.push('Lien causal ou déduction : une corrélation seule ne démontre pas la causalité.');
+ if(!evidenceMention)alerts.push('Aucune preuve ou source identifiable fournie pour vérification.');
+ if(!alerts.length)alerts.push('Aucun indice lexical majeur détecté ; cela ne confirme pas l’affirmation.');
+ const tests=['Chercher un contre-exemple précis.','Demander une source datée, indépendante et vérifiable.','Comparer une interprétation alternative.'];
+ if(contradiction)tests.push('Reformuler les deux propositions et vérifier si elles se contredisent réellement.');
+ if(causal)tests.push('Vérifier les facteurs confondants et la chronologie.');
+ const evidenceStatus=evidenceMention?'Des éléments sont mentionnés, mais non vérifiés automatiquement.':'Aucune source vérifiée. Le classement ne vaut pas validation factuelle.';
+ return 'ATLAS V2.0.1 — ANALYSE LOCALE\n\nCLASSEMENT : '+classification+'\nSTATUT : '+evidenceStatus+'\n\nVIGILANCE :\n• '+alerts.join('\n• ')+'\n\nTESTS CONTRADICTOIRES :\n• '+tests.join('\n• ')+'\n\nCONCLUSION : analyse par règles, sans recherche Internet ni preuve de vérité. Décision finale humaine.';
+}
+window.astorAtlasAnalyzeLocal=(claim,proof='')=>window.astorModuleEnabled('ATLAS')?analyzeClaim(claim,proof):'Atlas est désactivé pour cette session.';
+$('atlasAnalyze').addEventListener('click',()=>{if(!window.astorModuleEnabled('ATLAS')){result.textContent='Atlas est désactivé pour cette session.';return}const claim=input.value.trim();result.textContent=claim?analyzeClaim(claim,evidence.value.trim()):'Ajoute une affirmation à examiner.';});
+$('atlasClear').addEventListener('click',()=>{input.value='';evidence.value='';result.textContent='Analyse effacée. Atlas V2.0.1 prêt.';});
+})();</script>
+<!-- ASTOR V3.9.2 — MNEMOSYNE: local read-only knowledge layer -->
+<script>
+(() => {
+  "use strict";
+  const MNEMOSYNE = Object.freeze([
+    {id:"astor.role",category:"ASTOR",title:"Rôle d’ASTOR",content:"ASTOR coordonne le système, dialogue avec l’utilisateur et l’aide à organiser ses projets. L’utilisateur reste le décideur final.",source:"Décision du projet ASTOR",confidence:"élevé",sensitivity:"publique-projet"},
+    {id:"eve.role",category:"SYSTÈMES",title:"Eve",content:"Eve est le module pédagogique : apprentissage, explication et accompagnement de la compréhension.",source:"Architecture ASTOR",confidence:"élevé",sensitivity:"publique-projet"},
+    {id:"atlas.role",category:"SYSTÈMES",title:"Atlas",content:"Atlas contrôle la cohérence, distingue faits, hypothèses et incertitudes et challenge les conclusions.",source:"Architecture ASTOR",confidence:"élevé",sensitivity:"publique-projet"},
+    {id:"hades.role",category:"SYSTÈMES",title:"Hades",content:"Hades est le module de sécurité et d’urgence. Il ne remplace pas les services d’urgence réels et ne possède pas d’autonomie système.",source:"Architecture ASTOR",confidence:"élevé",sensitivity:"publique-projet"},
+    {id:"orpheus.role",category:"SYSTÈMES",title:"Orpheus",content:"Orpheus gère les fonctions média et musicales compatibles avec le Hub.",source:"Architecture ASTOR",confidence:"élevé",sensitivity:"publique-projet"},
+    {id:"memory.rule",category:"MÉMOIRE",title:"Principe mémoire",content:"Comprendre une information ne signifie pas la mémoriser. La conservation durable doit être explicite et les données protégées restent séparées du contexte conversationnel.",source:"ASTOR V3.9.2",confidence:"élevé",sensitivity:"publique-projet"},
+    {id:"security.rule",category:"SÉCURITÉ",title:"Principe de sécurité",content:"Le coffre chiffré reste séparé de Mnémosyne. La base de connaissances locale n’obtient aucun accès automatique aux notes privées.",source:"Architecture V3.9.2",confidence:"élevé",sensitivity:"publique-projet"},
+    {id:"quality.rule",category:"MNÉMOSYNE",title:"Qualité et traçabilité",content:"Mnémosyne privilégie la qualité et la traçabilité avant la quantité. Une connaissance doit conserver une provenance identifiable et un niveau de confiance.",source:"Règle permanente validée par le fondateur",confidence:"élevé",sensitivity:"publique-projet"},
+    {id:"version.383",category:"VERSIONS",title:"ASTOR V3.8.3",content:"Version testée sur Android pour les reformulations et corrections vocales, notamment statut, reformule et continuation contextuelle.",source:"Validation Android du projet ASTOR",confidence:"élevé",sensitivity:"publique-projet"},
+    {id:"version.390",category:"VERSIONS",title:"ASTOR V3.9.0",content:"Version testée sur Android pour la mémoire conversationnelle temporaire et le rappel des sujets récents.",source:"Validation Android du projet ASTOR",confidence:"élevé",sensitivity:"publique-projet"},
+    {id:"version.391",category:"VERSIONS",title:"ASTOR V3.9.1",content:"Version testée sur Android pour la mémoire structurée : temporaire, candidate à mémorisation avec confirmation et information protégée.",source:"Validation Android du projet ASTOR",confidence:"élevé",sensitivity:"publique-projet"},
+    {id:"version.3922",category:"VERSIONS",title:"ASTOR V3.9.2.2",content:"Version testée sur Android avec routage natif entre le cerveau conversationnel d’ASTOR et la base locale Mnémosyne.",source:"Validation Android du projet ASTOR",confidence:"élevé",sensitivity:"publique-projet"}
+  ]);
+  const norm = v => (v||"").toString().normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+  window.ASTOR_MNEMOSYNE = Object.freeze({
+    version:"3.9.4.1",
+    mode:"lecture seule",
+    count:MNEMOSYNE.length,
+    all:()=>MNEMOSYNE.map(x=>({...x})),
+    search:q=>{
+      const n=norm(q);
+      return MNEMOSYNE.filter(x=>norm([x.title,x.category,x.content,x.source].join(" ")).includes(n)).map(x=>({...x}));
+    },
+    get:id=>{const x=MNEMOSYNE.find(e=>e.id===id);return x?{...x}:null;}
+  });
+
+  // Add a small visible diagnostic card without coupling to the conversation engine.
+  const mount=()=>{
+    if(document.getElementById("mnemosyne-status")) return;
+    const card=document.createElement("section");
+    card.id="mnemosyne-status";
+    card.setAttribute("aria-label","Mnémosyne");
+    card.style.cssText="margin:12px 0;padding:12px;border:1px solid rgba(255,255,255,.16);border-radius:12px;background:rgba(0,0,0,.12)";
+    card.innerHTML='<strong>MNÉMOSYNE · V3.9.4.1</strong><div style="opacity:.8;margin-top:5px">Bibliothèque locale : '+MNEMOSYNE.length+' entrées · lecture seule · coffre privé séparé</div>';
+    const host=document.querySelector("main")||document.querySelector(".container")||document.body;
+    host.appendChild(card);
+  };
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",mount,{once:true}); else mount();
+})();
+</script>
+
+
+
+
+<script id="androidFluidUi">(()=>{'use strict';
+const $=id=>document.getElementById(id);
+const icons={micro:'M9 5a3 3 0 0 1 6 0v7a3 3 0 0 1-6 0z M6 10v2a6 6 0 0 0 12 0v-2 M12 18v4 M8 22h8',console:'M5 5h14v11H9l-4 4z',memory:'M6 4h12v16H6z M9 8h6 M9 12h6 M9 16h4',modules:'M4 4h6v6H4z M14 4h6v6h-6z M4 14h6v6H4z M14 14h6v6h-6z',atlas:'M12 3l8 4v5c0 5-8 9-8 9s-8-4-8-9V7z M8 12l3 3 5-6',media:'M9 18V5l10-2v13 M9 8l10-2 M9 18c0 3-6 3-6 0s6-3 6 0 M19 16c0 3-6 3-6 0s6-3 6 0',lock:'M7 10V7a5 5 0 0 1 10 0v3 M5 10h14v11H5z M12 14v3',settings:'M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8 M9 3h6l1 3 3 1 2 5-2 4-3 1-1 4H9l-1-4-3-1-2-4 2-5 3-1z',send:'M4 4l17 8-17 8 4-8z M8 12h13'};
+function icon(key){const ns='http://www.w3.org/2000/svg';const s=document.createElementNS(ns,'svg');s.setAttribute('viewBox','0 0 24 24');s.setAttribute('aria-hidden','true');const p=document.createElementNS(ns,'path');p.setAttribute('d',icons[key]);s.append(p);return s;}
+function text(tag,content,cls){const el=document.createElement(tag);el.textContent=content;if(cls)el.className=cls;return el;}
+const main=document.querySelector('main'),workspace=document.querySelector('.workspace');
+const modules=$('modules').closest('aside');modules.id='androidModulesPanel';
+const memory=document.createElement('section');memory.id='androidMemoryPanel';memory.className='panel';
+let cursor=Array.from(modules.children).find(el=>el.tagName==='H2'&&el.textContent.includes('MÉMOIRE'));
+while(cursor){const next=cursor.nextElementSibling;memory.append(cursor);cursor=next;}main.append(memory);
+const header=document.querySelector('header'),bar=document.createElement('div');bar.id='androidAppbar';header.before(bar);bar.append(header);
+header.querySelector('strong').replaceChildren(text('span','ASTOR'),text('small','Votre espace personnel'));
+const consolePanel=$('chatForm').closest('section');consolePanel.id='androidConsolePanel';
+const nav=document.createElement('nav');nav.id='androidNavigation';nav.setAttribute('aria-label','Navigation principale');document.body.append(nav);
+const views=[['console','Accueil',workspace],['memory','Notes',memory],['modules','Systèmes',modules],['atlas','Atlas',$('atlasV2Panel')],['media','Média',$('mediaPanel')]];
+function show(name){views.forEach(([key,,panel])=>{panel.hidden=key!==name;$('androidTab_'+key).setAttribute('aria-pressed',String(key===name));});document.body.dataset.view=name;window.scrollTo({top:0,behavior:'instant'});if(name==='console')requestAnimationFrame(()=>{const log=$('chatlog');log.scrollTop=log.scrollHeight;});}
+views.forEach(([key,label])=>{const b=document.createElement('button');b.id='androidTab_'+key;b.type='button';b.append(icon(key),text('span',label));b.addEventListener('click',()=>show(key));nav.append(b);});
+const core=document.querySelector('.core'),logo=core.querySelector('.rings'),coreLabel=$('coreStatus'),hero=document.createElement('div');hero.className='hero-copy';hero.append(text('span','ESPACE PRIVÉ','eyebrow'),text('h1','Bienvenue chez vous.'),text('p','Un espace pour réfléchir, apprendre et garder vos idées.'));core.replaceChildren(hero,logo,coreLabel);coreLabel.textContent='LOCAL · ACCÈS PRIVÉ';logo.querySelector('svg').setAttribute('viewBox','20 20 68 68');
+consolePanel.querySelector('h2').textContent='Parlons ensemble';
+const welcome=$('chatlog').querySelector('.bubble');if(welcome)welcome.textContent='Bonjour. Que voulez-vous explorer aujourd’hui ? Les réponses sont locales dans cette version.';
+const actions=document.createElement('div');actions.id='androidQuickActions';actions.setAttribute('aria-label','Commandes rapides');
+['Statut','Heure','Aide'].forEach(command=>{const b=document.createElement('button');b.type='button';b.textContent=command;b.addEventListener('click',()=>{if(document.body.classList.contains('astor-locked'))return;$('message').value=command;$('chatForm').requestSubmit();});actions.append(b);});$('consoleRouteStatus').after(actions);
+function headerAction(id,label,key,handler){const b=document.createElement('button');b.id=id;b.type='button';b.setAttribute('aria-label',label);b.title=label;b.append(icon(key));b.addEventListener('click',handler);header.append(b);}
+headerAction('androidSettings','Paramètres','settings',()=>{location.href='astor-native://settings';});headerAction('androidLockNow','Verrouiller','lock',()=>window.dispatchEvent(new Event('astor-lock-request')));
+$('wake').hidden=true;$('aiEndpoint').closest('.security').hidden=true;$('shareContext').closest('label').hidden=true;
+$('message').setAttribute('enterkeyhint','send');$('message').setAttribute('autocomplete','off');$('message').placeholder='Parlez à Astor…';
+const send=$('chatForm').querySelector('[type="submit"]');send.replaceChildren(icon('send'));send.setAttribute('aria-label','Envoyer');send.title='Envoyer';
+const micro=$('voice');micro.disabled=false;micro.hidden=false;micro.onclick=()=>{location.href=micro.getAttribute('aria-pressed')==='true'?'astor-native://voice-cancel':'astor-native://voice';};micro.replaceChildren(icon('micro'));micro.setAttribute('aria-label','Dicter en français');micro.setAttribute('aria-pressed','false');micro.title='Dicter en français';
+const voiceStatus=text('p','','voice-status');voiceStatus.id='androidVoiceStatus';voiceStatus.setAttribute('role','status');voiceStatus.setAttribute('aria-live','polite');$('chatForm').after(voiceStatus);
+window.astorVoice={state(listening,message){micro.setAttribute('aria-pressed',String(listening));micro.setAttribute('aria-label',listening?'Annuler la dictée':'Dicter en français');micro.title=listening?'Annuler la dictée':'Dicter en français';$('message').readOnly=listening;send.disabled=listening;voiceStatus.textContent=message;},result(transcript){const input=$('message');const draft=input.value.trim();const spoken=String(transcript).trim();const command=!draft && /^(?:astor[\s,:-]+)?(?:statut|statuts|statue|status)[\s.!?]*$/iu.test(spoken);input.value=command?'Statut':(draft?draft+' ':'')+spoken;input.dispatchEvent(new Event('input',{bubbles:true}));}};
+nav.addEventListener('click',()=>{if(micro.getAttribute('aria-pressed')==='true'){window.astorVoice.state(false,'Dictée annulée.');location.href='astor-native://voice-cancel';}});
+const hint=voiceStatus.nextElementSibling;if(hint)hint.textContent='Vos échanges temporaires disparaissent au verrouillage.';
+memory.querySelector('h2').textContent='Votre coffre privé';memory.prepend(text('span','NOTES CHIFFRÉES','eyebrow'));
+memory.querySelector('label[for="passphrase"]').textContent='Phrase secrète du coffre';$('passphrase').placeholder='Au moins 12 caractères';$('unlockMemory').textContent='Ouvrir le coffre';$('lockMemory').textContent='Refermer';$('clearMemory').textContent='Supprimer le coffre';$('clearMemory').classList.add('danger-action');
+const vaultHint=memory.querySelector('p.hint');if(vaultHint)vaultHint.textContent='Vos notes restent chiffrées sur ce téléphone. Gardez votre phrase secrète : elle ne peut pas être récupérée.';
+modules.querySelector('h2').textContent='Une équipe, cinq rôles';modules.prepend(text('span','LES SYSTÈMES','eyebrow'));
+const roles={ASTOR:['Coordonner','Organiser et vous accompagner'],EVE:['Apprendre','Comprendre et progresser'],HADES:['Protéger','Accès et repères d’urgence'],ATLAS:['Vérifier','Examiner les raisonnements'],ORPHEUS:['Écouter','Votre espace musical']};
+modules.querySelectorAll('.module').forEach(b=>{const r=roles[b.dataset.module];b.append(text('strong',r[0],'module-role'),text('small',r[1],'module-detail'));});$('routingSettings').querySelector('legend').textContent='Disponibles pour cette session';
+const atlas=$('atlasV2Panel');atlas.querySelector('h2').textContent='Prenez du recul';atlas.prepend(text('span','ATLAS · CONTRÔLE CRITIQUE','eyebrow'));atlas.querySelector('p').textContent='Examinez une idée, repérez les incertitudes et cherchez un contre-exemple. Cette analyse locale ne vérifie pas les faits en ligne.';
+$('atlasInput').placeholder='Quelle idée souhaitez-vous examiner ?';$('atlasEvidence').placeholder='Ajoutez les sources ou les éléments que vous avez…';$('atlasAnalyze').textContent='Examiner avec Atlas';$('atlasClear').textContent='Recommencer';
+const media=$('mediaPanel'),services=media.querySelector('.stack');Array.from(media.children).forEach(el=>el.hidden=true);
+const mediaCard=document.createElement('div');mediaCard.className='service-links';Array.from(services.querySelectorAll('a')).forEach(a=>{a.textContent=a.href.includes('spotify')?'Ouvrir Spotify':'Ouvrir YouTube';mediaCard.append(a);});
+media.append(text('span','ORPHEUS','eyebrow'),text('h2','Votre pause musicale'),text('p','Ouvrez votre service préféré dans son application ou votre navigateur. Astor se verrouille lorsque vous le quittez.','hint'),mediaCard,text('p','La musique d’entrée se règle dans Paramètres. Le lecteur intégré reste à développer. Le micro d’Accueil permet la dictée locale selon votre téléphone.','hint'));
+document.querySelector('footer').hidden=true;show('console');
+})();
+</script></body></html>

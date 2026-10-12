@@ -1,0 +1,1 @@
+package android.speech; public class RecognizerIntent {public static final String ACTION_RECOGNIZE_SPEECH="speech",EXTRA_LANGUAGE_MODEL="model",LANGUAGE_MODEL_FREE_FORM="free",EXTRA_LANGUAGE="language",EXTRA_MAX_RESULTS="max",EXTRA_PARTIAL_RESULTS="partial",EXTRA_PREFER_OFFLINE="offline";}

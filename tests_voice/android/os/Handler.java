@@ -1,0 +1,1 @@
+package android.os; public class Handler {public static Runnable timeout; public Handler(Looper l){} public void postDelayed(Runnable r,long t){timeout=r;} public void removeCallbacks(Runnable r){if(timeout==r)timeout=null;}}

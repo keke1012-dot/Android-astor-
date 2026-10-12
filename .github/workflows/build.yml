@@ -1,0 +1,78 @@
+name: ASTOR signed Android update
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Install Android SDK packages
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - name: Test conversation, vault and Mnemosyne
+        run: |
+          node test_web.cjs
+          node test_vault_security.cjs
+          node test_mnemosyne.cjs
+      - name: Test full interface
+        working-directory: tests_ui
+        run: |
+          npm ci
+          node test-ui.cjs
+      - name: Test Java policy and dictation
+        run: |
+          mkdir -p "$RUNNER_TEMP/astor-tests"
+          javac -d "$RUNNER_TEMP/astor-tests" app/src/main/java/fr/astor/hades/PreferencePolicy.java tests_native/fr/astor/hades/PreferencePolicyTest.java
+          java -cp "$RUNNER_TEMP/astor-tests" fr.astor.hades.PreferencePolicyTest
+          javac -d "$RUNNER_TEMP/astor-tests" app/src/main/java/fr/astor/hades/VoiceDictation.java $(find tests_voice -name '*.java')
+          java -cp "$RUNNER_TEMP/astor-tests" fr.astor.hades.VoiceDictationTest
+      - name: Prepare private signature
+        env:
+          ASTOR_KEYSTORE_B64: ${{ secrets.ASTOR_KEYSTORE_B64 }}
+          ASTOR_STORE_PASSWORD: ${{ secrets.ASTOR_STORE_PASSWORD }}
+          ASTOR_KEY_ALIAS: ${{ secrets.ASTOR_KEY_ALIAS }}
+          ASTOR_KEY_PASSWORD: ${{ secrets.ASTOR_KEY_PASSWORD }}
+        run: python3 scripts/prepare_ci_signing.py
+      - name: Compile and lint release
+        run: gradle :app:assembleRelease :app:lintRelease --no-daemon
+      - name: Verify historical signing certificate
+        run: |
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs app/build/outputs/apk/release/app-release.apk > "$RUNNER_TEMP/astor-certificate.txt"
+          python3 - <<'PY'
+          import os,re
+          from pathlib import Path
+          text=(Path(os.environ['RUNNER_TEMP'])/'astor-certificate.txt').read_text()
+          expected='92c2176cba95abcf1257d4fe7fef6233743a7f72accf94cde17dc906afda2151'
+          values=re.findall(r'certificate SHA-256 digest:\s*([0-9a-fA-F:]+)',text)
+          if not any(v.replace(':','').lower()==expected for v in values):
+              raise SystemExit('Signing certificate mismatch: APK must not be installed as an update.')
+          print('Historical signing certificate verified.')
+          PY
+      - name: Upload signed APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ASTOR-0211-Mnemosyne-APK
+          path: app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 7
+      - name: Remove private signing files
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import os,shutil
+          from pathlib import Path
+          shutil.rmtree(Path(os.environ['RUNNER_TEMP'])/'astor-signing',ignore_errors=True)
+          PY
