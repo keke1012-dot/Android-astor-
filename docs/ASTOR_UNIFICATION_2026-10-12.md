@@ -2,11 +2,15 @@
 
 ## Une application
 
-Le Hub contient déjà ASTOR, EVE, ATLAS, HADES, TEMPEST, MNÉMOSYNE et ORPHEUS. L’identité de la version release reste `fr.astor.hades.prototype`, libellé « Astor ». VersionCode 24, versionName 0.2.5-unifiee-rc1. L’Oreillette conserve son prototype séparé ; sa traduction n’est pas intégrée par cette livraison.
+Le Hub contient déjà ASTOR, EVE, ATLAS, HADES, TEMPEST, MNÉMOSYNE et ORPHEUS. L’identité de la version release reste `fr.astor.hades.unified`, libellé « Astor Unifiée ». VersionCode 24, versionName 0.2.5-unifiee-rc1. L’Oreillette conserve son prototype séparé ; sa traduction n’est pas intégrée par cette livraison.
 
 ## Mises à jour
 
-La CI release utilise uniquement la clé privée historique configurée dans les secrets du dépôt. Elle refuse la fabrication si cette clé est absente et refuse la livraison si le certificat n’est pas celui attendu. Aucune clé de remplacement créée, aucun secret sauvegardé dans les sources. Les applications de test déjà installées possèdent d’autres identifiants/signatures et ne seront pas remplacées par cette release.
+La première tentative de CI signée a été arrêtée : paramètres privés historiques manquants. Une archive privée de signature mémoire existante a ensuite été retrouvée ; sa clé est lisible, certificat SHA-256 9716ec2375cbd8a340b9e8d4b6a0517a62aba0b9185420115ad4f0d96e3a2005. Ce certificat est différent de la clé attendue par l’ancienne configuration.
+
+Le workflow `unified-build.yml` fabrique un APK release non signé et aligné, qui ne doit jamais être proposé à l’installation. La signature et sa vérification sont réalisées en privé après téléchargement avec la clé mémoire sauvegardée. Aucune clé ni phrase secrète ajoutée aux sources ou au paquet public. L’identité `fr.astor.hades.unified` et cette clé doivent rester fixes pour les futures mises à jour. Les applications précédentes restent installées séparément.
+
+L’automatisation de la signature dans GitHub n’est pas configurée. Le workflow historique manuel garde son propre contrôle et ses exigences ; il n’est pas utilisé pour la livraison unifiée.
 
 ## Migration des données
 

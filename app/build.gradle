@@ -18,7 +18,7 @@ android {
     ndkVersion '27.2.12479018'
     externalNativeBuild { cmake { path file('src/main/cpp/CMakeLists.txt'); version '3.22.1' } }
     defaultConfig {
-        applicationId 'fr.astor.hades.prototype'
+        applicationId 'fr.astor.hades.unified'
         minSdk 30
         targetSdk 35
         ndk { abiFilters 'arm64-v8a' }
@@ -47,7 +47,7 @@ android {
             manifestPlaceholders = [astorAppLabel: project.hasProperty('astorGlobalTest') ? 'Astor 0.2.5 RC2' : project.hasProperty('astorMemoryTest') ? 'Astor Mémoire' : (project.hasProperty('astorSeparateTest') ? 'Astor Tempest' : 'Astor Test')]
         }
         release {
-            manifestPlaceholders = [astorAppLabel: 'Astor']
+            manifestPlaceholders = [astorAppLabel: 'Astor Unifiée']
             minifyEnabled false
             debuggable false
             signingConfig astorSigning.isEmpty() ? null : signingConfigs.prototype

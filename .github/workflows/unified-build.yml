@@ -1,0 +1,101 @@
+name: ASTOR Unified Build for Private Signing
+on:
+  push:
+    branches: [develop/astor-0.2.5-global]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: astor-test-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkout pinned local inference engine
+        uses: actions/checkout@v4
+        with:
+          repository: ggml-org/llama.cpp
+          ref: 4762ad7316dcdec20016ab5985fb46a27902204d
+          path: third_party/llama.cpp
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Install Android SDK
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0" "ndk;27.2.12479018" "cmake;3.22.1"
+      - name: Test conversation, vault and Mnemosyne
+        run: |
+          node tests_v025/guardrails.cjs
+          node test_web.cjs
+          node test_vault_security.cjs
+          node test_mnemosyne.cjs
+          node test_durable_memory.cjs
+          node test_backup_transfer.cjs
+          node test_local_ai.cjs
+      - name: Test interface
+        working-directory: tests_ui
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          node test-ui.cjs
+      - name: Test native policies and dictation
+        run: |
+          mkdir -p "$RUNNER_TEMP/astor-tests"
+          javac -d "$RUNNER_TEMP/astor-tests" app/src/main/java/fr/astor/hades/PreferencePolicy.java tests_native/fr/astor/hades/PreferencePolicyTest.java
+          java -cp "$RUNNER_TEMP/astor-tests" fr.astor.hades.PreferencePolicyTest
+          javac -d "$RUNNER_TEMP/astor-tests" app/src/main/java/fr/astor/hades/LocalLlm.java tests_native/fr/astor/hades/LocalLlmFileTest.java
+          java -cp "$RUNNER_TEMP/astor-tests" fr.astor.hades.LocalLlmFileTest
+          javac -d "$RUNNER_TEMP/astor-tests" app/src/main/java/fr/astor/hades/VoiceDictation.java $(find tests_voice -name '*.java')
+          java -cp "$RUNNER_TEMP/astor-tests" fr.astor.hades.VoiceDictationTest
+      - name: Test exact Java and JNI inference on CPU
+        run: |
+          cmake -S app/src/main/cpp -B "$RUNNER_TEMP/astor-native-smoke"
+          cmake --build "$RUNNER_TEMP/astor-native-smoke" --target astor_local -j 2
+          python3 scripts/test_model_download.py "$RUNNER_TEMP/qwen3.gguf"
+          python3 scripts/test_candidate_download.py "$RUNNER_TEMP/qwen3-upgrade.gguf"
+          javac -cp "$RUNNER_TEMP/astor-tests" -d "$RUNNER_TEMP/astor-tests" tests_native/fr/astor/hades/LocalLlmNativeTest.java tests_native/fr/astor/hades/LocalLlmQualityTest.java tests_native/fr/astor/hades/LocalLlmSwitchTest.java
+          java -Djava.library.path="$RUNNER_TEMP/astor-native-smoke" -cp "$RUNNER_TEMP/astor-tests" fr.astor.hades.LocalLlmNativeTest "$RUNNER_TEMP/qwen3.gguf"
+          java -Djava.library.path="$RUNNER_TEMP/astor-native-smoke" -cp "$RUNNER_TEMP/astor-tests" fr.astor.hades.LocalLlmNativeTest "$RUNNER_TEMP/qwen3-upgrade.gguf" upgrade
+          java -Djava.library.path="$RUNNER_TEMP/astor-native-smoke" -cp "$RUNNER_TEMP/astor-tests" fr.astor.hades.LocalLlmQualityTest "$RUNNER_TEMP/qwen3.gguf" "$RUNNER_TEMP/light-quality.json" direct
+          java -Djava.library.path="$RUNNER_TEMP/astor-native-smoke" -cp "$RUNNER_TEMP/astor-tests" fr.astor.hades.LocalLlmQualityTest "$RUNNER_TEMP/qwen3-upgrade.gguf" "$RUNNER_TEMP/upgraded-quality.json" direct
+          java -Djava.library.path="$RUNNER_TEMP/astor-native-smoke" -cp "$RUNNER_TEMP/astor-tests" fr.astor.hades.LocalLlmSwitchTest "$RUNNER_TEMP/qwen3.gguf" "$RUNNER_TEMP/qwen3-upgrade.gguf"
+      - name: Compile and lint unified release
+        run: gradle :app:assembleRelease :app:lintRelease --no-daemon
+      - name: Prepare unsigned APK for private signing
+        run: |
+          mkdir -p dist
+          "$ANDROID_HOME/build-tools/35.0.0/zipalign" -P 16 -f 4 app/build/outputs/apk/release/app-release-unsigned.apk dist/Astor-0.2.5-Unifiee-RC1-unsigned.apk
+          "$ANDROID_HOME/build-tools/35.0.0/zipalign" -c -P 16 4 dist/Astor-0.2.5-Unifiee-RC1-unsigned.apk
+          cp "$ANDROID_HOME/build-tools/35.0.0/lib/apksigner.jar" dist/apksigner.jar
+          cp "$RUNNER_TEMP/light-quality.json" dist/light-quality.json
+          cp "$RUNNER_TEMP/upgraded-quality.json" dist/upgraded-quality.json
+          printf '%s\n' '9716ec2375cbd8a340b9e8d4b6a0517a62aba0b9185420115ad4f0d96e3a2005' > EXPECTED_CERTIFICATE_SHA256.txt
+          cd dist
+          sha256sum *.apk apksigner.jar > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ASTOR-0.2.5-Unifiee-Unsigned-APK
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Remove private signing files
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import os,shutil
+          from pathlib import Path
+          shutil.rmtree(Path(os.environ['RUNNER_TEMP'])/'astor-signing',ignore_errors=True)
+          PY

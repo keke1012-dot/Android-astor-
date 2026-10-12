@@ -1,7 +1,5 @@
 name: ASTOR Unified Signed APK
 on:
-  push:
-    branches: [develop/astor-0.2.5-global]
   workflow_dispatch:
 permissions:
   contents: read
