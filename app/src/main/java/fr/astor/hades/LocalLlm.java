@@ -41,8 +41,8 @@ public final class LocalLlm {
         worker.execute(() -> {
             try {
                 if (generation != epoch.get()) return;
-                listener.state("Calcul sur votre téléphone…", -1);
-                byte[] result = nativeGenerate(model.getAbsolutePath(), prompt.getBytes(StandardCharsets.UTF_8), nativeGeneration);
+                listener.state("Chargement du modèle et préparation de la question…", -1);
+                byte[] result = nativeGenerate(model.getAbsolutePath(), prompt.getBytes(StandardCharsets.UTF_8), nativeGeneration, listener);
                 if (generation != epoch.get()) return;
                 String answer = new String(result, StandardCharsets.UTF_8);
                 if (answer.startsWith("ERREUR_LOCAL:")) listener.done("", answer.substring(13));
@@ -109,7 +109,7 @@ public final class LocalLlm {
         if (!closed && AVAILABLE) worker.execute(LocalLlm::nativeRelease);
     }
     public void close() { cancel(); closed = true; worker.shutdown(); }
-    private static native byte[] nativeGenerate(String path, byte[] prompt, long revision);
+    private static native byte[] nativeGenerate(String path, byte[] prompt, long revision, Listener progress);
     private static native long nativeRevision();
     private static native void nativeCancel();
     private static native void nativeRelease();

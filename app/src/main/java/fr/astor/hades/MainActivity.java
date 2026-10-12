@@ -360,7 +360,7 @@ public final class MainActivity extends Activity {
             runOnUiThread(() -> { if (trustedVoiceView(view)) publishLocalModelState(view); });
         }
         @android.webkit.JavascriptInterface public void cancel() {
-            runOnUiThread(() -> { if (trustedVoiceView(view)) { localLlm.cancel(); localAiState(view, "Calcul annulé.", localLlm.ready()); } });
+            runOnUiThread(() -> { if (trustedVoiceView(view)) { view.setKeepScreenOn(false); localLlm.cancel(); localAiState(view, "Calcul annulé.", localLlm.ready()); } });
         }
         @android.webkit.JavascriptInterface public void download() {
             runOnUiThread(() -> {
@@ -384,9 +384,11 @@ public final class MainActivity extends Activity {
             if (id == null || !id.matches("[0-9]{1,12}") || prompt == null || prompt.length() > 14000) return;
             runOnUiThread(() -> {
                 if (!trustedVoiceView(view)) return;
+                view.setKeepScreenOn(true);
                 localLlm.generate(prompt, new LocalLlm.Listener() {
                     public void state(String message, int percent) { runOnUiThread(() -> { if (trustedVoiceView(view)) localAiState(view, message, localLlm.ready()); }); }
                     public void done(String reply, String error) { runOnUiThread(() -> {
+                        view.setKeepScreenOn(false);
                         if (!trustedVoiceView(view)) return;
                         view.evaluateJavascript("window.ASTOR_LOCAL_AI && window.ASTOR_LOCAL_AI.result("
                             + JSONObject.quote(id) + "," + JSONObject.quote(reply) + "," + JSONObject.quote(error) + ")", null);
