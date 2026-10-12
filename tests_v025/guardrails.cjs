@@ -1,0 +1,23 @@
+'use strict';
+const fs = require('node:fs');
+const assert = require('node:assert/strict');
+const path = require('node:path');
+const root = path.resolve(__dirname, '..');
+const read = p => fs.readFileSync(path.join(root,p),'utf8');
+const cpp=read('app/src/main/cpp/astor_local.cpp');
+const java=read('app/src/main/java/fr/astor/hades/LocalLlm.java');
+const manifest=read('app/src/main/AndroidManifest.xml');
+const activity=read('app/src/main/java/fr/astor/hades/MainActivity.java');
+const workflow=read('.github/workflows/build.yml');
+function check(name, fn){try{fn();console.log('OK',name)}catch(e){console.error('FAIL',name,e.message);process.exitCode=1}}
+check('Native model cancellation',()=>assert.match(cpp,/revision\.load\(\)\s*!=\s*state\.expected/));
+check('Native generation serialized',()=>assert.match(cpp,/lock_guard<std::mutex> guard\(engine_mutex\)/));
+check('Inference timeout bounded',()=>assert.match(cpp,/std::chrono::seconds\(90\)/));
+check('No unencrypted Android network traffic',()=>assert.match(manifest,/android:usesCleartextTraffic="false"/));
+check('No automatic Android backup of private data',()=>assert.match(manifest,/android:allowBackup="false"/));
+check('Screen capture protection',()=>assert.match(activity,/FLAG_SECURE/));
+check('Strong biometric requirement',()=>assert.match(activity,/BIOMETRIC_STRONG/));
+check('Verified model download',()=>{assert.match(java,/MessageDigest/);assert.match(java,/MODEL_SHA/);assert.match(java,/UPGRADE_SHA/)});
+check('Signed release and historical certificate verification',()=>{assert.match(workflow,/assembleRelease/);assert.match(workflow,/Signing certificate mismatch/)});
+check('Existing functional test suites remain',()=>{for(const x of ['test_web.cjs','test_vault_security.cjs','test_mnemosyne.cjs'])assert.match(workflow,new RegExp(x.replace('.','\\.')))});
+console.log('Static regression guard only; not a substitute for runtime security, memory or factual accuracy tests.');
