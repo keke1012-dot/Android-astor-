@@ -51,12 +51,22 @@ jobs:
         run: gradle :app:assembleDebug :app:lintDebug --no-daemon
       - name: Verify APK signature
         run: '"$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose app/build/outputs/apk/debug/app-debug.apk'
-      - name: Prepare download
+      - name: Preserve existing test installation
         run: |
+          expected='4482f65cfb0e5e0c4defaefb8a539cff96e6a9fc02fcc69e43d666079d72a9fb'
+          actual=$("$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs app/build/outputs/apk/debug/app-debug.apk | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
           mkdir -p dist
-          cp app/build/outputs/apk/debug/app-debug.apk dist/Astor-Test-0.2.1.2.apk
+          if [ "$actual" = "$expected" ]; then
+            cp app/build/outputs/apk/debug/app-debug.apk dist/Astor-Test-0.2.1.2.apk
+            echo 'Compatible signature: update Astor Test without uninstalling.' > dist/INSTALLATION.txt
+          else
+            gradle :app:assembleDebug :app:lintDebug -PastorSeparateTest --no-daemon
+            "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose app/build/outputs/apk/debug/app-debug.apk
+            cp app/build/outputs/apk/debug/app-debug.apk dist/Astor-Tempest-0.2.1.2.apk
+            echo 'Signature différente : installer Astor Tempest à côté de Astor Test. Ne pas désinstaller Astor Test. Son coffre et ses données restent dans cette application. Aucune migration automatique.' > dist/INSTALLATION.txt
+          fi
           cd dist
-          sha256sum Astor-Test-0.2.1.2.apk > SHA256SUMS.txt
+          sha256sum *.apk > SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
           name: ASTOR-Test-0.2.1.2-APK

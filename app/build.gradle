@@ -38,9 +38,9 @@ android {
     }
     buildTypes {
         debug {
-            applicationIdSuffix '.test'
+            applicationIdSuffix project.hasProperty('astorSeparateTest') ? '.test.tempest' : '.test'
             versionNameSuffix '-test'
-            manifestPlaceholders = [astorAppLabel: 'Astor Test']
+            manifestPlaceholders = [astorAppLabel: project.hasProperty('astorSeparateTest') ? 'Astor Tempest' : 'Astor Test']
         }
         release {
             manifestPlaceholders = [astorAppLabel: 'Astor']
