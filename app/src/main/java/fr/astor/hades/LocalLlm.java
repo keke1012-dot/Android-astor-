@@ -30,7 +30,8 @@ public final class LocalLlm {
     public interface Listener { void state(String message, int percent); void done(String reply, String error); }
     public LocalLlm(File storage) { directory = new File(storage, "local-model"); model = new File(directory, "qwen3-0.6b-q8.gguf"); }
     public boolean available() { return AVAILABLE; }
-    public boolean ready() { return AVAILABLE && model.isFile() && model.length() == MODEL_SIZE; }
+    public boolean installed() { return model.isFile() && model.length() == MODEL_SIZE; }
+    public boolean ready() { return AVAILABLE && installed(); }
     public void generate(String prompt, Listener listener) {
         if (closed || !AVAILABLE) { listener.done("", "Moteur local incompatible avec cet appareil."); return; }
         if (!ready()) { listener.done("", "Téléchargez d’abord le modèle local depuis Accueil."); return; }
@@ -58,6 +59,7 @@ public final class LocalLlm {
     }
     public void download(Listener listener) {
         if (closed || !AVAILABLE) { listener.done("", "Moteur local incompatible avec cet appareil."); return; }
+        if (installed()) { listener.done("Modèle déjà installé. Aucun téléchargement nécessaire.", ""); return; }
         if (!busy.compareAndSet(false, true)) { listener.done("", "Une opération locale est déjà en cours."); return; }
         long generation = epoch.get();
         worker.execute(() -> {

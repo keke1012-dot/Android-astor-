@@ -3,7 +3,7 @@ let harness=fs.readFileSync(path.join(__dirname,'test_web.cjs'),'utf8').split('(
 harness=harness.replace('vm.createContext(env);',"const calls=[];let deferred=false;win.AstorLocalNative={state(){},download(){},cancel(){},generate(id,prompt){calls.push({id,prompt});if(!deferred)win.ASTOR_LOCAL_AI.result(id,'Réponse simulée pour le test du pont natif.','');}};vm.createContext(env);");
 new Function('require','__dirname',harness+String.raw`
 (async()=>{
- win.ASTOR_LOCAL_AI.state('Prêt',true);assert(nodes.enableLocalAI.checked);
+ win.ASTOR_LOCAL_AI.state('Modèle conservé, moteur indisponible',false,true);assert(nodes.downloadLocalModel.disabled);assert(!win.ASTOR_LOCAL_AI.ready);assert(win.ASTOR_LOCAL_AI.installed);win.ASTOR_LOCAL_AI.state('Prêt',true);assert(nodes.enableLocalAI.checked);assert(nodes.downloadLocalModel.disabled);assert.match(nodes.welcomeMessage.textContent,/disponible pour discuter/);assert.doesNotMatch(nodes.welcomeMessage.textContent,/Téléchargez/);
  assert.match(await send('Explique les trous noirs simplement'),/IA locale.*Réponse simulée/s);assert.equal(calls.length,1);assert.match(calls[0].prompt,/Tu es ASTOR/);
  assert.match(await send('Quelle est la devise de Tempest ?'),/Ne crains pas la tempête/);assert.equal(calls.length,1);
  await send('statut');await send('urgence');assert.equal(calls.length,1);

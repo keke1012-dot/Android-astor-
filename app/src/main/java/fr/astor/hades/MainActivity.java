@@ -278,6 +278,11 @@ public final class MainActivity extends Activity {
                 view.animate().alpha(1f).setDuration(animationsEnabled() ? 120 : 0).start();
                 playIntro(view);
             }
+            @Override public void onPageFinished(WebView view, String url) {
+                if (trustedVoiceView(view) && HOME.equals(url)) {
+                    publishLocalModelState(view);
+                }
+            }
             @Override public void onReceivedError(WebView view, WebResourceRequest request, android.webkit.WebResourceError error) {
                 if (request.isForMainFrame() && hub == view)
                     lockHub("Ouverture impossible. Déverrouillez pour réessayer.");
@@ -352,7 +357,7 @@ public final class MainActivity extends Activity {
         private final WebView view;
         LocalAiBridge(WebView current) { view = current; }
         @android.webkit.JavascriptInterface public void state() {
-            runOnUiThread(() -> { if (trustedVoiceView(view)) localAiState(view, localLlm.ready() ? "Modèle local disponible · sans Internet" : "Modèle à télécharger une fois · environ 640 Mo", localLlm.ready()); });
+            runOnUiThread(() -> { if (trustedVoiceView(view)) publishLocalModelState(view); });
         }
         @android.webkit.JavascriptInterface public void cancel() {
             runOnUiThread(() -> { if (trustedVoiceView(view)) { localLlm.cancel(); localAiState(view, "Calcul annulé.", localLlm.ready()); } });
@@ -360,15 +365,17 @@ public final class MainActivity extends Activity {
         @android.webkit.JavascriptInterface public void download() {
             runOnUiThread(() -> {
                 if (!trustedVoiceView(view)) return;
+                if (localLlm.installed()) { publishLocalModelState(view); return; }
                 if (!localLlm.available()) { localAiState(view, "Moteur incompatible avec cet appareil.", false); return; }
                 new AlertDialog.Builder(MainActivity.this).setTitle("Installer le modèle local")
                     .setMessage("Télécharger Qwen3 0.6B (environ 640 Mo) depuis Hugging Face ? Une connexion Wi-Fi est conseillée. Les futures questions resteront sur ce téléphone.")
                     .setPositiveButton("Télécharger", (d, which) -> {
                         if (!trustedVoiceView(view)) return;
+                        view.setKeepScreenOn(true);
                         localAiState(view, "Téléchargement en cours… Gardez Astor ouvert.", false);
                         localLlm.download(new LocalLlm.Listener() {
                             public void state(String message, int percent) { runOnUiThread(() -> { if (trustedVoiceView(view)) localAiState(view, message, false); }); }
-                            public void done(String reply, String error) { runOnUiThread(() -> { if (trustedVoiceView(view)) localAiState(view, error.isEmpty() ? reply : error, localLlm.ready()); }); }
+                            public void done(String reply, String error) { runOnUiThread(() -> { view.setKeepScreenOn(false); if (trustedVoiceView(view)) localAiState(view, error.isEmpty() ? reply : error, localLlm.ready()); }); }
                         });
                     }).setNegativeButton("Annuler", null).show();
             });
@@ -390,7 +397,15 @@ public final class MainActivity extends Activity {
     }
     private void localAiState(WebView view, String message, boolean ready) {
         view.evaluateJavascript("window.ASTOR_LOCAL_AI && window.ASTOR_LOCAL_AI.state("
-            + JSONObject.quote(message) + "," + ready + ")", null);
+            + JSONObject.quote(message) + "," + ready + "," + localLlm.installed() + ")", null);
+    }
+    private void publishLocalModelState(WebView view) {
+        String message = localLlm.installed()
+                ? (localLlm.available() ? "Modèle déjà installé · IA locale disponible sans Internet"
+                        : "Modèle conservé sur le téléphone · moteur local indisponible sur cet appareil")
+                : (localLlm.available() ? "Modèle à télécharger une fois · environ 640 Mo"
+                        : "Moteur local incompatible avec cet appareil");
+        localAiState(view, message, localLlm.ready());
     }
 
     private boolean trustedVoiceView(WebView view) {
@@ -671,6 +686,7 @@ public final class MainActivity extends Activity {
         WebView old = hub;
         hub = null;
         root.removeView(old);
+        old.setKeepScreenOn(false);
         old.stopLoading();
         old.onPause();
         old.loadUrl("about:blank");

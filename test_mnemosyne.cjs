@@ -3,7 +3,7 @@ let harness=fs.readFileSync(path.join(__dirname,'test_web.cjs'),'utf8').split('(
 harness=harness.replace('vm.createContext(env);', "delete nodes['mnemosyne-status'];const mounted=[];Node.prototype.appendChild=function(n){mounted.push(n);this.append(n)};vm.createContext(env);");
 new Function('require','__dirname',harness+String.raw`
 (async()=>{
- const m=win.ASTOR_MNEMOSYNE;assert.equal(m.count,15);assert.equal(m.version,'3.9.6');
+ const m=win.ASTOR_MNEMOSYNE;assert.equal(m.count,15);assert.equal(m.version,'3.9.6.1');
  assert.equal(m.search('Atlas')[0].id,'atlas.role');assert.equal(m.search('sécurité').length,m.search('securite').length);
  const copy=m.get('atlas.role');copy.content='changed';assert.notEqual(m.get('atlas.role').content,'changed');assert.equal(m.get('absent'),null);
  assert(mounted.some(n=>n.id==='mnemosyne-status'));
