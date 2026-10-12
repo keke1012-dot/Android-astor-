@@ -1,0 +1,43 @@
+name: ASTOR Model Comparison
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/model-evaluation.yml'
+      - 'scripts/test_candidate_download.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: ggml-org/llama.cpp
+          ref: 4762ad7316dcdec20016ab5985fb46a27902204d
+          path: third_party/llama.cpp
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Build exact JNI engine and download verified models
+        run: |
+          cmake -S app/src/main/cpp -B "$RUNNER_TEMP/native"
+          cmake --build "$RUNNER_TEMP/native" --target astor_local -j 2
+          python3 scripts/test_model_download.py "$RUNNER_TEMP/light.gguf"
+          python3 scripts/test_candidate_download.py "$RUNNER_TEMP/candidate.gguf"
+          mkdir -p "$RUNNER_TEMP/classes" results
+          javac -d "$RUNNER_TEMP/classes" app/src/main/java/fr/astor/hades/LocalLlm.java tests_native/fr/astor/hades/LocalLlmQualityTest.java
+      - name: Compare identical French questions
+        run: |
+          java -Djava.library.path="$RUNNER_TEMP/native" -cp "$RUNNER_TEMP/classes" fr.astor.hades.LocalLlmQualityTest "$RUNNER_TEMP/light.gguf" results/light.json direct
+          java -Djava.library.path="$RUNNER_TEMP/native" -cp "$RUNNER_TEMP/classes" fr.astor.hades.LocalLlmQualityTest "$RUNNER_TEMP/candidate.gguf" results/candidate.json direct
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ASTOR-model-comparison
+          path: results/
+          if-no-files-found: error
+          retention-days: 14

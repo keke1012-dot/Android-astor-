@@ -39,10 +39,18 @@ public final class LocalLlmQualityTest {
             String prompt = "<|im_start|>system\n" + system + "<|im_end|>\n<|im_start|>user\n" + questions[i]
                 + "<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n";
             long start = System.nanoTime();
-            engine.generate(prompt, new LocalLlm.Listener() {
+            LocalLlm.Listener listener = new LocalLlm.Listener() {
                 public void state(String message, int percent) {}
                 public void done(String text, String problem) { answer.set(text); error.set(problem); done.countDown(); }
-            });
+            };
+            if (args.length > 2 && args[2].equals("direct")) {
+                java.lang.reflect.Method rev = LocalLlm.class.getDeclaredMethod("nativeRevision");
+                java.lang.reflect.Method generate = LocalLlm.class.getDeclaredMethod("nativeGenerate", String.class, byte[].class, long.class, LocalLlm.Listener.class);
+                rev.setAccessible(true); generate.setAccessible(true);
+                byte[] result = (byte[]) generate.invoke(null, file.toString(), prompt.getBytes(StandardCharsets.UTF_8), (Long) rev.invoke(null), listener);
+                String text = new String(result, StandardCharsets.UTF_8);
+                listener.done(text.startsWith("ERREUR_LOCAL:") ? "" : text, text.startsWith("ERREUR_LOCAL:") ? text.substring(13) : "");
+            } else engine.generate(prompt, listener);
             if (!done.await(120, TimeUnit.SECONDS)) throw new AssertionError("Inference timed out: " + i);
             long millis = (System.nanoTime() - start) / 1_000_000;
             engine.close();
