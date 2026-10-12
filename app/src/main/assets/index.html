@@ -838,6 +838,46 @@ cognitiveCheck.type='checkbox';
 cognitiveCheck.id='enableCognitiveAI';
 cognitiveToggle.append(cognitiveCheck,document.createTextNode(' ASTOR Cognitive V1 · double vérification (expérimental, plus lent)'));
 $('enableLocalAI').parentElement.appendChild(cognitiveToggle);
+
+const correctionPanel=document.createElement('section');
+correctionPanel.className='security';
+const correctionTitle=document.createElement('h2');
+correctionTitle.textContent='ASTOR Learning V1 · Corriger une réponse';
+const correctionInfo=document.createElement('p');
+correctionInfo.className='hint';
+correctionInfo.textContent='Une correction n’est retenue qu’après votre confirmation Android. Mémoire temporaire, effacée au verrouillage.';
+const correctionQuestion=document.createElement('textarea');
+correctionQuestion.id='learningQuestion';
+correctionQuestion.rows=2;
+correctionQuestion.maxLength=800;
+correctionQuestion.placeholder='Question initiale (800 caractères maximum)';
+correctionQuestion.setAttribute('aria-label','Question à corriger');
+const correctionAnswer=document.createElement('textarea');
+correctionAnswer.id='learningCorrection';
+correctionAnswer.rows=3;
+correctionAnswer.maxLength=800;
+correctionAnswer.placeholder='Correction à retenir (800 caractères maximum)';
+correctionAnswer.setAttribute('aria-label','Correction proposée');
+const correctionButton=document.createElement('button');
+correctionButton.type='button';
+correctionButton.textContent='Proposer la correction';
+const correctionStatus=document.createElement('p');
+correctionStatus.className='statusline';
+correctionStatus.setAttribute('role','status');
+correctionButton.addEventListener('click',()=>{
+ const question=correctionQuestion.value.trim(),correction=correctionAnswer.value.trim();
+ if(!question||!correction){correctionStatus.textContent='Renseignez la question et la correction.';return;}
+ if(!window.AstorLocalNative||typeof window.AstorLocalNative.proposeCorrection!=='function'){
+  correctionStatus.textContent='Fonction disponible uniquement dans la version Android Learning V1.';return;
+ }
+ try{
+  window.AstorLocalNative.proposeCorrection(question,correction);
+  correctionStatus.textContent='Demande transmise. Validez ou refusez dans la fenêtre Android.';
+ }catch{correctionStatus.textContent='Impossible de demander la validation.';}
+});
+correctionPanel.append(correctionTitle,correctionInfo,correctionQuestion,correctionAnswer,correctionButton,correctionStatus);
+$('localAIControls').appendChild(correctionPanel);
+
 $('downloadLocalModel').onclick=()=>{if(api.upgradeInstalled){if(window.AstorLocalNative)window.AstorLocalNative.state();return;}if(window.AstorLocalNative)window.AstorLocalNative.download();else $('localAIStatus').textContent='Le modèle local est disponible dans l’application Android.';};
 $('useLightLocalModel').addEventListener('change',()=>{if(pending){$('useLightLocalModel').checked=api.useLight;return;}if(window.AstorLocalNative&&typeof window.AstorLocalNative.selectLight==='function')window.AstorLocalNative.selectLight($('useLightLocalModel').checked);});
 $('cancelLocalAI').onclick=()=>api.cancel();
