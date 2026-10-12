@@ -10,3 +10,7 @@ node_modules/
 dist/
 *.apk
 *.log
+
+third_party/
+app/.cxx/
+*.gguf

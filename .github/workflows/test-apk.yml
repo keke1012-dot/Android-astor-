@@ -14,6 +14,12 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+      - name: Checkout pinned local inference engine
+        uses: actions/checkout@v4
+        with:
+          repository: ggml-org/llama.cpp
+          ref: 4762ad7316dcdec20016ab5985fb46a27902204d
+          path: third_party/llama.cpp
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -29,13 +35,14 @@ jobs:
         with:
           gradle-version: '8.9'
       - name: Install Android SDK
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0" "ndk;27.2.12479018" "cmake;3.22.1"
       - name: Test conversation, vault and Mnemosyne
         run: |
           node test_web.cjs
           node test_vault_security.cjs
           node test_mnemosyne.cjs
           node test_durable_memory.cjs
+          node test_local_ai.cjs
       - name: Test interface
         working-directory: tests_ui
         run: |
@@ -48,6 +55,20 @@ jobs:
           java -cp "$RUNNER_TEMP/astor-tests" fr.astor.hades.PreferencePolicyTest
           javac -d "$RUNNER_TEMP/astor-tests" app/src/main/java/fr/astor/hades/VoiceDictation.java $(find tests_voice -name '*.java')
           java -cp "$RUNNER_TEMP/astor-tests" fr.astor.hades.VoiceDictationTest
+      - name: Test real local model inference on CPU
+        run: |
+          cmake -S third_party/llama.cpp -B "$RUNNER_TEMP/llama-smoke" -DCMAKE_BUILD_TYPE=Release -DGGML_NATIVE=OFF -DLLAMA_CURL=OFF -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_SERVER=OFF -DLLAMA_BUILD_TOOLS=OFF
+          cmake --build "$RUNNER_TEMP/llama-smoke" --target llama-simple -j 2
+          python3 scripts/test_model_download.py "$RUNNER_TEMP/qwen3.gguf"
+          "$RUNNER_TEMP/llama-smoke/bin/llama-simple" -m "$RUNNER_TEMP/qwen3.gguf" -ngl 0 -n 40 $'<|im_start|>system\nTu es Astor. Réponds en français et brièvement.<|im_end|>\n<|im_start|>user\nDis bonjour en une phrase.<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n' > "$RUNNER_TEMP/ai-smoke.txt"
+          python3 - <<'PYMODEL'
+          import os
+          from pathlib import Path
+          text=(Path(os.environ['RUNNER_TEMP'])/'ai-smoke.txt').read_text()
+          answer=text.rsplit('</think>',1)[-1].strip()
+          if len(answer)<3: raise SystemExit('No generated answer from local model')
+          print('PASS: model loaded and generated a non-empty answer on CPU')
+          PYMODEL
       - name: Compile and lint test APK
         run: gradle :app:assembleDebug :app:lintDebug -PastorMemoryTest --no-daemon
       - name: Verify APK signature
@@ -55,13 +76,13 @@ jobs:
       - name: Prepare memory test APK and signing verifier
         run: |
           mkdir -p dist
-          cp app/build/outputs/apk/debug/app-debug.apk dist/Astor-Memoire-0.2.2.apk
+          cp app/build/outputs/apk/debug/app-debug.apk dist/Astor-IA-Locale-0.2.3.apk
           cp "$ANDROID_HOME/build-tools/35.0.0/lib/apksigner.jar" dist/apksigner.jar
           cd dist
           sha256sum *.apk apksigner.jar > SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: ASTOR-Memoire-0.2.2-APK
+          name: ASTOR-IA-Locale-0.2.3-APK
           path: dist/
           if-no-files-found: error
           retention-days: 14

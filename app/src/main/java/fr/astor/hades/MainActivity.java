@@ -66,6 +66,7 @@ public final class MainActivity extends Activity {
     private final Runnable idleLock = () -> lockHub("Session verrouillée après " + idleMinutes() + " minute(s) d’inactivité.");
     private FrameLayout root;
     private WebView hub;
+    private LocalLlm localLlm;
     private CancellationSignal cancellation;
     private boolean authenticating;
     private boolean resumed;
@@ -85,6 +86,7 @@ public final class MainActivity extends Activity {
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        localLlm = new LocalLlm(getNoBackupFilesDir());
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
         WebView.setWebContentsDebuggingEnabled(false);
         root = new FrameLayout(this);
@@ -245,6 +247,7 @@ public final class MainActivity extends Activity {
         root.removeAllViews();
         introPlayed = false;
         hub = new WebView(this);
+        hub.addJavascriptInterface(new LocalAiBridge(hub), "AstorLocalNative");
         hub.setBackgroundColor(Color.rgb(11, 15, 21));
         hub.setAlpha(0f);
         TextView loading = new TextView(this);
@@ -343,6 +346,51 @@ public final class MainActivity extends Activity {
         root.addView(hub, new FrameLayout.LayoutParams(-1, -1));
         hub.loadUrl(HOME);
         armIdleLock();
+    }
+
+    private final class LocalAiBridge {
+        private final WebView view;
+        LocalAiBridge(WebView current) { view = current; }
+        @android.webkit.JavascriptInterface public void state() {
+            runOnUiThread(() -> { if (trustedVoiceView(view)) localAiState(view, localLlm.ready() ? "Modèle local disponible · sans Internet" : "Modèle à télécharger une fois · environ 640 Mo", localLlm.ready()); });
+        }
+        @android.webkit.JavascriptInterface public void cancel() {
+            runOnUiThread(() -> { if (trustedVoiceView(view)) { localLlm.cancel(); localAiState(view, "Calcul annulé.", localLlm.ready()); } });
+        }
+        @android.webkit.JavascriptInterface public void download() {
+            runOnUiThread(() -> {
+                if (!trustedVoiceView(view)) return;
+                if (!localLlm.available()) { localAiState(view, "Moteur incompatible avec cet appareil.", false); return; }
+                new AlertDialog.Builder(MainActivity.this).setTitle("Installer le modèle local")
+                    .setMessage("Télécharger Qwen3 0.6B (environ 640 Mo) depuis Hugging Face ? Une connexion Wi-Fi est conseillée. Les futures questions resteront sur ce téléphone.")
+                    .setPositiveButton("Télécharger", (d, which) -> {
+                        if (!trustedVoiceView(view)) return;
+                        localAiState(view, "Téléchargement en cours… Gardez Astor ouvert.", false);
+                        localLlm.download(new LocalLlm.Listener() {
+                            public void state(String message, int percent) { runOnUiThread(() -> { if (trustedVoiceView(view)) localAiState(view, message, false); }); }
+                            public void done(String reply, String error) { runOnUiThread(() -> { if (trustedVoiceView(view)) localAiState(view, error.isEmpty() ? reply : error, localLlm.ready()); }); }
+                        });
+                    }).setNegativeButton("Annuler", null).show();
+            });
+        }
+        @android.webkit.JavascriptInterface public void generate(String id, String prompt) {
+            if (id == null || !id.matches("[0-9]{1,12}") || prompt == null || prompt.length() > 14000) return;
+            runOnUiThread(() -> {
+                if (!trustedVoiceView(view)) return;
+                localLlm.generate(prompt, new LocalLlm.Listener() {
+                    public void state(String message, int percent) { runOnUiThread(() -> { if (trustedVoiceView(view)) localAiState(view, message, localLlm.ready()); }); }
+                    public void done(String reply, String error) { runOnUiThread(() -> {
+                        if (!trustedVoiceView(view)) return;
+                        view.evaluateJavascript("window.ASTOR_LOCAL_AI && window.ASTOR_LOCAL_AI.result("
+                            + JSONObject.quote(id) + "," + JSONObject.quote(reply) + "," + JSONObject.quote(error) + ")", null);
+                    }); }
+                });
+            });
+        }
+    }
+    private void localAiState(WebView view, String message, boolean ready) {
+        view.evaluateJavascript("window.ASTOR_LOCAL_AI && window.ASTOR_LOCAL_AI.state("
+            + JSONObject.quote(message) + "," + ready + ")", null);
     }
 
     private boolean trustedVoiceView(WebView view) {
@@ -615,6 +663,7 @@ public final class MainActivity extends Activity {
     }
 
     private void disposeHub() {
+        if (localLlm != null) localLlm.cancel();
         stopVoice();
         stopIntro();
         handler.removeCallbacks(idleLock);
@@ -680,6 +729,7 @@ public final class MainActivity extends Activity {
         dismissPreferences();
         cancelAuthentication();
         disposeHub();
+        if (localLlm != null) localLlm.close();
         super.onDestroy();
     }
     @Override public void onBackPressed() {
