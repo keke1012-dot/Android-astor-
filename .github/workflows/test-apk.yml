@@ -1,7 +1,7 @@
 name: ASTOR Test APK
 on:
   push:
-    branches: [main, develop/astor-0.2.5-global]
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
