@@ -821,7 +821,13 @@ const api={ready:false,installed:false,upgradeInstalled:false,lightInstalled:fal
  state(message,ready,installed=ready,upgradeInstalled=installed,lightInstalled=false,useLight=false){api.ready=!!ready;api.installed=!!installed;api.upgradeInstalled=!!upgradeInstalled;api.lightInstalled=!!lightInstalled;api.useLight=!!useLight;$('localAIStatus').textContent=message;$('enableLocalAI').disabled=!ready;$('downloadLocalModel').disabled=!!upgradeInstalled||!!pending;$('downloadLocalModel').textContent=upgradeInstalled?'Modèle amélioré installé':'Télécharger le modèle amélioré';$('useLightLocalModel').checked=!!useLight;$('useLightLocalModel').disabled=!ready||!upgradeInstalled||!lightInstalled||!!pending;if(ready&&!pending)$('enableLocalAI').checked=true;const welcome=$('welcomeMessage');if(welcome)welcome.textContent=ready?'Bonjour. Votre IA locale est disponible pour discuter, même sans Internet. Les commandes et le coffre restent disponibles.':'Bonjour. Les commandes et le coffre restent disponibles. Vérifiez l’état de votre IA locale dans le panneau ci-dessous.';},
  result(id,reply,error){if(!pending||pending.id!==String(id))return;const text=String(reply||'').replace(/<think>[\s\S]*?<\/think>/g,'').trim();finish(error?'IA locale · '+error:(text||'IA locale · Aucune réponse exploitable.'));$('localAIStatus').textContent=error||'Réponse calculée sur ce téléphone · aucune question envoyée sur Internet';},
  cancel(){if(window.AstorLocalNative&&typeof window.AstorLocalNative.cancel==='function')window.AstorLocalNative.cancel();finish('IA locale · Calcul annulé.');},
- generate(pconst cognitiveCheck=$('enableCognitiveAI');
+ generate(prompt){
+  if(!api.ready||!window.AstorLocalNative)return Promise.resolve('IA locale · Téléchargez d’abord le modèle.');
+  if(pending)return Promise.resolve('IA locale · Un calcul est déjà en cours.');
+  return new Promise(resolve=>{const id=String(++sequence);pending={id,resolve,timer:setTimeout(()=>api.cancel(),240000)};busy(true);$('localAIStatus').textContent='Calcul en cours sur votre téléphone…';try{if($('enableCognitiveAI').checked && typeof window.AstorLocalNative.cognitive==='function')window.AstorLocalNative.cognitive(id,prompt);else window.AstorLocalNative.generate(id,prompt);}catch{finish('IA locale · Le moteur n’est pas disponible.');}});
+ }
+};
+window.ASTOR_LOCAL_AI=api;
 $('proposeLearningCorrection').onclick=()=>{
  const question=$('learningQuestion').value.trim(),correction=$('learningCorrection').value.trim();
  const status=$('learningCorrectionStatus');
@@ -832,19 +838,6 @@ $('proposeLearningCorrection').onclick=()=>{
  try{window.AstorLocalNative.proposeCorrection(question,correction);status.textContent='Demande transmise. Validez ou refusez dans la fenêtre Android.';}
  catch{status.textContent='Impossible de demander la validation.';}
 };
-onAnswer.value.trim();
- if(!question||!correction){correctionStatus.textContent='Renseignez la question et la correction.';return;}
- if(!window.AstorLocalNative||typeof window.AstorLocalNative.proposeCorrection!=='function'){
-  correctionStatus.textContent='Fonction disponible uniquement dans la version Android Learning V1.';return;
- }
- try{
-  window.AstorLocalNative.proposeCorrection(question,correction);
-  correctionStatus.textContent='Demande transmise. Validez ou refusez dans la fenêtre Android.';
- }catch{correctionStatus.textContent='Impossible de demander la validation.';}
-});
-correctionPanel.append(correctionTitle,correctionInfo,correctionQuestion,correctionAnswer,correctionButton,correctionStatus);
-$('localAIControls').appendChild(correctionPanel);
-
 $('downloadLocalModel').onclick=()=>{if(api.upgradeInstalled){if(window.AstorLocalNative)window.AstorLocalNative.state();return;}if(window.AstorLocalNative)window.AstorLocalNative.download();else $('localAIStatus').textContent='Le modèle local est disponible dans l’application Android.';};
 $('useLightLocalModel').addEventListener('change',()=>{if(pending){$('useLightLocalModel').checked=api.useLight;return;}if(window.AstorLocalNative&&typeof window.AstorLocalNative.selectLight==='function')window.AstorLocalNative.selectLight($('useLightLocalModel').checked);});
 $('cancelLocalAI').onclick=()=>api.cancel();
