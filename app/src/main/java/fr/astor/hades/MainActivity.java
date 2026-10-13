@@ -626,9 +626,9 @@ public final class MainActivity extends Activity {
             store.load(null);
             if (store.containsAlias("astor-elevenlabs-api-v1")) store.deleteEntry("astor-elevenlabs-api-v1");
         } catch (Exception ignored) { /* No provider client remains able to use this key. */ }
-        File retired = new File(getCacheDir(), "astor-eleven-audio");
-        File[] files = retired.listFiles();
-        if (files != null) for (File file : files) if (file.isFile()) file.delete();
+        java.io.File retired = new java.io.File(getCacheDir(), "astor-eleven-audio");
+        java.io.File[] files = retired.listFiles();
+        if (files != null) for (java.io.File file : files) if (file.isFile()) file.delete();
         retired.delete();
     }
 
