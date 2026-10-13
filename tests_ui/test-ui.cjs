@@ -1,7 +1,7 @@
 const fs=require('fs'),assert=require('assert'),path=require('path');
 const {JSDOM,VirtualConsole}=require('jsdom');
 const {webcrypto}=require('crypto');
-const html=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/index.html'),'utf8').replaceAll("location.href='astor-native://activity'","window.__nativeActivityRequested=true");
+const html=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/index.html'),'utf8').replaceAll("location.href='astor-native://activity'","window.__nativeActivityRequested=true").replaceAll("location.href='astor-native://internet?id='","window.__internetUrl='astor-native://internet?id='");
 const errors=[];const vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e.message));
 const dom=new JSDOM(html,{url:'https://appassets.androidplatform.net/assets/index.html',runScripts:'dangerously',pretendToBeVisual:true,virtualConsole:vc,beforeParse(w){
  Object.defineProperty(w,'crypto',{value:webcrypto});Object.defineProperty(w,'isSecureContext',{value:true});w.TextEncoder=TextEncoder;w.TextDecoder=TextDecoder;w.confirm=()=>true;w.scrollTo=()=>{};
@@ -11,17 +11,24 @@ const dom=new JSDOM(html,{url:'https://appassets.androidplatform.net/assets/inde
 const d=dom.window.document,$=id=>d.getElementById(id);
 const tick=()=>new Promise(r=>setImmediate(r));
 (async()=>{
- const panels=['androidMemoryPanel','androidModulesPanel','atlasV2Panel','mediaPanel'];
+ const panels=['internetPanel','androidMemoryPanel','androidModulesPanel','atlasV2Panel','mediaPanel'];
  assert(!d.querySelector('.workspace').hidden);panels.forEach(id=>assert($(id).hidden));
- for(const key of ['memory','modules','atlas','media','console']){
+ for(const key of ['internet','memory','modules','atlas','media','console']){
   $('androidTab_'+key).click();
   const pressed=[...d.querySelectorAll('#androidNavigation button')].filter(b=>b.getAttribute('aria-pressed')==='true');
   assert.equal(pressed.length,1);assert.equal(pressed[0].id,'androidTab_'+key);
   assert.equal([...d.querySelector('main').children].filter(el=>!el.hidden).length,1);
  }
+ $('androidTab_internet').click();assert(!$('internetPanel').hidden);assert(!d.querySelector('.workspace').contains($('internetPanel')));
+ $('enableInternet').checked=true;$('enableInternet').dispatchEvent(new dom.window.Event('change'));$('internetQuery').value='Webb';$('searchWikipedia').click();
+ const searchId=new URL(dom.window.__internetUrl).searchParams.get('id');
+ dom.window.ASTOR_INTERNET.result(searchId,'WIKIPÉDIA · consultation Internet\n\nJames Webb\nTexte externe <script>danger</script>\nSource : https://fr.wikipedia.org/?curid=123\n\nExtraits à vérifier.','');
+ assert.equal(d.querySelectorAll('.source-card').length,1);assert.equal(d.querySelector('.source-card h3').textContent,'James Webb');assert.equal(d.querySelector('.source-card script'),null);assert.match(d.querySelector('.source-card p').textContent,/<script>/);assert.equal(d.querySelector('.source-link').href,'https://fr.wikipedia.org/?curid=123');assert($('internetResults').hidden);assert.match($('internetStatus').textContent,/Consulté à/);
+ $('enableInternet').checked=false;$('enableInternet').dispatchEvent(new dom.window.Event('change'));assert.equal(d.querySelectorAll('.source-card').length,0);assert($('internetCards').hidden);$('androidTab_console').click();
+ assert(d.querySelector('.model-drawer').contains($('localAIStatus')));assert(!d.querySelector('.model-drawer').open);
  assert($('androidMemoryPanel').contains($('passphrase')));assert($('androidMemoryPanel').contains($('memory')));
  assert($('androidModulesPanel').contains($('enableModuleHADES')));
- for(const b of d.querySelectorAll('#androidQuickActions button')){b.click();await tick();assert.equal($('message').value,'');assert($('chatlog').children.length>0);}
+ for(const b of d.querySelectorAll('#androidQuickActions button')){b.click();await tick();if(b.textContent.includes('Internet')){$('androidTab_console').click();continue;}assert.equal($('message').value,'');assert($('chatlog').children.length>0);}
  $('message').value='Je veux apprendre l’anglais';$('chatForm').requestSubmit();await tick();
  assert.match($('chatlog').lastElementChild.textContent,/EVE · mode local/);
  $('androidTab_memory').click();assert(!d.querySelector('.workspace').hidden===false);
@@ -62,6 +69,6 @@ const tick=()=>new Promise(r=>setImmediate(r));
  $('confirmMemory').click();for(let i=0;i<100&&!$('memoryConfirmation').hidden;i++)await new Promise(r=>setTimeout(r,10));assert($('memoryConfirmation').hidden);assert.equal($('personalMemoryList').children.length,1);
  $('lockMemory').click();assert.equal($('personalMemoryList').children.length,0);assert.equal($('memoryPreview').textContent,'');assert.match($('personalMemoryStatus').textContent,/Déverrouillez/);
  assert(!errors.length,errors.join('\n'));
- console.log('PASS: navigation 5 vues, conservation des contrôles et de la conversation, commandes rapides, routage EVE, absence d’erreurs JavaScript.');
+ console.log('PASS: navigation 6 vues, conservation des contrôles et de la conversation, commandes rapides, routage EVE, absence d’erreurs JavaScript.');
  dom.window.close();
 })().catch(e=>{console.error(e);dom.window.close();process.exit(1)});
