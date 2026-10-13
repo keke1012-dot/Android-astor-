@@ -1,0 +1,52 @@
+name: ASTOR 0.2.6 Performance A/B
+on:
+  push:
+    branches:
+      - feature/astor-0.2.6-optimisation
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        batch: [32, 64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: ggml-org/llama.cpp
+          ref: 4762ad7316dcdec20016ab5985fb46a27902204d
+          path: third_party/llama.cpp
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Install Android toolchain
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0" "ndk;27.2.12479018" "cmake;3.22.1"
+      - name: Run JavaScript regression tests
+        run: |
+          node test_web.cjs
+          node test_local_ai.cjs
+      - name: Build diagnostic APK
+        env:
+          BATCH: ${{ matrix.batch }}
+        run: |
+          if [ "$BATCH" = 64 ]; then
+            sed -i "s/arguments '-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON'/arguments '-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON', '-DASTOR_OPT_BATCH64=ON', '-DASTOR_PERF_DIAGNOSTICS=ON'/" app/build.gradle
+          else
+            sed -i "s/arguments '-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON'/arguments '-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON', '-DASTOR_PERF_DIAGNOSTICS=ON'/" app/build.gradle
+          fi
+          gradle --no-daemon :app:assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: astor-diagnostic-batch-${{ matrix.batch }}
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
