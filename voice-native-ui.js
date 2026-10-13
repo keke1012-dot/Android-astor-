@@ -5,8 +5,8 @@
   if (!chat || typeof chat.before !== 'function') return;
   const panel = document.createElement('details');
   panel.id = 'nativeSpeechPanel';
-  panel.style.cssText = 'flex-shrink:0;margin:8px 0;border:1px solid #285269;border-radius:12px;padding:10px;max-height:35dvh;overflow:auto';
-  panel.innerHTML = '<summary style="cursor:pointer;color:#a3eeff">◈ ASTOR · Voix grave et métallique</summary>'
+  panel.style.cssText = 'flex-shrink:0;margin:8px 0;border:1px solid #285269;border-radius:12px;padding:10px;scroll-margin-top:90px';
+  panel.innerHTML = '<summary style="cursor:pointer;color:#a3eeff">◈ Voix · ElevenLabs et Android</summary>'
     + '<p class="hint">Synthèse Android locale, sur demande. La lecture s’arrête au verrouillage.</p>'
     + '<div class="toolbar"><button type="button" id="nativeSpeechInit">Détecter les voix</button>'
     + '<button type="button" id="nativeSpeechSettings">Paramètres voix</button></div>'
@@ -25,21 +25,44 @@
     + '<div class="toolbar"><button type="button" id="elevenConfigure">Configurer ElevenLabs</button>'
     + '<button type="button" id="elevenTest" disabled>Tester ElevenLabs</button>'
     + '<button type="button" id="elevenRead" disabled>Lire avec ElevenLabs</button>'
-    + '<button type="button" id="elevenForget">Retirer la clé</button></div>'
+    + '<button type="button" id="elevenForget">Retirer la clé</button>'
+    + '<button type="button" id="elevenStop">Arrêter la lecture</button></div>'
     + '<p id="elevenSpeechStatus" class="statusline" role="status" aria-live="polite">Configurez votre clé dans le panneau Android. Aucun envoi automatique.</p>';
-  panel.append(online);
+  panel.querySelector('summary').after(online);
   let elevenConfigured = false, elevenBusy = false;
   const updateElevenButtons = () => {
     const muted = $('nativeSpeechMute').checked;
     $('elevenTest').disabled = !elevenConfigured || elevenBusy || muted;
     $('elevenRead').disabled = !elevenConfigured || elevenBusy || muted;
   };
+  const local = document.createElement('details');
+  local.id = 'localSpeechDrawer';
+  const localTitle = document.createElement('summary'); localTitle.textContent = 'Voix Android hors ligne';
+  localTitle.style.cssText = 'cursor:pointer;margin:12px 0;color:#a3eeff'; local.append(localTitle);
+  const muteLabel = panel.querySelector('#nativeSpeechMute').closest('label');
+  for (const node of [...panel.children]) {
+    if (node.tagName !== 'SUMMARY' && node !== online && node !== muteLabel) local.append(node);
+  }
+  panel.append(muteLabel, local);
   chat.before(panel);
   const nav = (action, args = {}) => {
     if (document.body.classList.contains('astor-locked')) return;
     const query = new URLSearchParams(args).toString();
     location.href = 'astor-native://' + action + (query ? '?' + query : '');
   };
+  const actions = $('androidQuickActions');
+  if (actions) {
+    const quick = document.createElement('button'); quick.id = 'elevenQuickAccess'; quick.type = 'button';
+    quick.textContent = 'ElevenLabs'; quick.setAttribute('aria-controls', 'nativeSpeechPanel'); quick.setAttribute('aria-expanded', 'false');
+    quick.onclick = () => {
+      if (document.body.classList.contains('astor-locked')) return;
+      panel.open = true; quick.setAttribute('aria-expanded', 'true');
+      panel.scrollIntoView?.({behavior:'smooth', block:'start'});
+      $('elevenConfigure').focus({preventScroll:true});
+    };
+    panel.addEventListener('toggle', () => quick.setAttribute('aria-expanded', String(panel.open)));
+    actions.append(quick);
+  }
   $('nativeSpeechInit').onclick = () => nav('tts-init');
   $('nativeSpeechSettings').onclick = () => nav('tts-settings');
   const speak = text => nav('tts-speak', {text, voice:$('nativeSpeechVoice').value, mode:$('nativeSpeechMode').value});
@@ -53,6 +76,7 @@
   $('nativeSpeechStop').onclick = () => nav('tts-stop');
   $('nativeSpeechMute').onchange = () => nav('tts-mute', {enabled:$('nativeSpeechMute').checked ? '1' : '0'});
   $('elevenConfigure').onclick = () => nav('eleven-config');
+  $('elevenStop').onclick = () => nav('tts-stop');
   $('elevenForget').onclick = () => nav('eleven-forget');
   $('elevenTest').onclick = () => nav('eleven-speak', {text:'Bonsoir Kellian. Je suis Astor. Le système est prêt. Nous avançons une étape à la fois.'});
   $('elevenRead').onclick = () => {

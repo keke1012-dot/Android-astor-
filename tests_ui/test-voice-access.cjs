@@ -1,0 +1,12 @@
+const fs=require('fs'),path=require('path'),assert=require('assert');
+const {JSDOM}=require('jsdom');
+const script=fs.readFileSync(path.join(__dirname,'../voice-native-ui.js'),'utf8').replace('location.href =','window.__nativeURL =');
+const dom=new JSDOM('<body><section><div id="androidQuickActions"></div><div id="chatlog"></div></section></body>',{url:'https://appassets.androidplatform.net/assets/index.html',runScripts:'outside-only'});
+const w=dom.window,$=id=>w.document.getElementById(id);w.eval(script);
+assert.equal($('elevenQuickAccess').textContent,'ElevenLabs');assert(!$('nativeSpeechPanel').open);
+$('elevenQuickAccess').click();assert($('nativeSpeechPanel').open);assert.equal(w.document.activeElement.id,'elevenConfigure');
+assert.equal($('nativeSpeechPanel').style.maxHeight,'');assert.equal($('nativeSpeechPanel').style.overflow,'');
+assert.equal($('nativeSpeechPanel').children[1].querySelector('#elevenConfigure').id,'elevenConfigure');
+assert(!$('localSpeechDrawer').open);assert(!$('localSpeechDrawer').contains($('nativeSpeechMute')));
+$('elevenStop').click();assert.equal(w.__nativeURL,'astor-native://tts-stop');
+dom.window.close();console.log('PASS: visible ElevenLabs shortcut, direct open/focus, cloud controls first, no nested scroll clipping and local drawer separated');
