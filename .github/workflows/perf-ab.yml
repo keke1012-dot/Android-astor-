@@ -25,12 +25,28 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
+      # Use the runner's installed SDK tools; avoid setup-android's interactive license step.
+      - name: Accept Android SDK licenses
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
+          export ANDROID_SDK_ROOT="$SDK_ROOT"
+          export ANDROID_HOME="$SDK_ROOT"
+          mkdir -p "$SDK_ROOT/licenses"
+          set +o pipefail
+          yes | sdkmanager --licenses > /tmp/astor-sdk-licenses.log 2>&1
+          result=${PIPESTATUS[1]}
+          set -o pipefail
+          if [ "$result" -ne 0 ]; then
+            tail -n 50 /tmp/astor-sdk-licenses.log
+            exit "$result"
+          fi
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
       - name: Install Android toolchain
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0" "ndk;27.2.12479018" "cmake;3.22.1"
+        run: sdkmanager --licenses >/dev/null < /dev/null && sdkmanager "platforms;android-35" "build-tools;35.0.0" "ndk;27.2.12479018" "cmake;3.22.1"
       - name: Run JavaScript regression tests
         run: |
           node test_web.cjs
