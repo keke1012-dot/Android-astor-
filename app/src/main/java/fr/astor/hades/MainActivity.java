@@ -86,6 +86,10 @@ public final class MainActivity extends Activity {
     private Animatable gateAnimation;
     private VoiceDictation voiceDictation;
     private AstorSpeech speech;
+    private ElevenSpeech elevenSpeech;
+    private ElevenCredentials elevenCredentials;
+    private AlertDialog voiceOnlineDialog;
+    private final java.util.concurrent.ExecutorService voiceSettingsWorker = java.util.concurrent.Executors.newSingleThreadExecutor();
     private final LearningIndex learningIndex = new LearningIndex();
     private static final int MICROPHONE_REQUEST = 71;
     private static final int FILE_REQUEST = 72;
@@ -355,6 +359,9 @@ public final class MainActivity extends Activity {
                 if (trustedVoiceView(view) && HOME.equals(url)) {
                     publishLocalModelState(view);
                     readSelectedFile(view);
+                    ensureEleven(view);
+                    publishSpeech(view, "Touchez Détecter pour activer la voix Android locale.", new org.json.JSONArray(), false,
+                            getSharedPreferences("astor-voice", MODE_PRIVATE).getBoolean("muted", false));
                 }
             }
             @Override public void onReceivedError(WebView view, WebResourceRequest request, android.webkit.WebResourceError error) {
@@ -375,7 +382,17 @@ public final class MainActivity extends Activity {
                 String url = request.getUrl().toString();
                 if ("astor-native".equals(request.getUrl().getScheme()) && trustedVoiceView(view)) {
                     String action = request.getUrl().getHost();
+                    if (request.hasGesture() && "eleven-config".equals(action)) {
+                        showElevenConfiguration(view); return true;
+                    }
+                    if (request.hasGesture() && "eleven-forget".equals(action)) {
+                        forgetElevenCredential(view); return true;
+                    }
+                    if (request.hasGesture() && "eleven-speak".equals(action)) {
+                        askElevenSpeech(view, request.getUrl().getQueryParameter("text")); return true;
+                    }
                     if ("tts-stop".equals(action)) {
+                        cancelElevenSpeech("Lecture arrêtée.");
                         if (speech != null) speech.stop("Lecture arrêtée.");
                         return true;
                     }
@@ -383,6 +400,7 @@ public final class MainActivity extends Activity {
                         ensureSpeech(view); return true;
                     }
                     if (request.hasGesture() && "tts-speak".equals(action)) {
+                        cancelElevenSpeech("Voix locale sélectionnée.");
                         stopVoice(); stopIntro(); armIdleLock();
                         if (ensureSpeech(view)) speech.speak(request.getUrl().getQueryParameter("text"),
                                 request.getUrl().getQueryParameter("voice"),
@@ -392,6 +410,7 @@ public final class MainActivity extends Activity {
                     if (request.hasGesture() && "tts-mute".equals(action)) {
                         boolean muted = "1".equals(request.getUrl().getQueryParameter("enabled"));
                         getSharedPreferences("astor-voice", MODE_PRIVATE).edit().putBoolean("muted", muted).apply();
+                        if (muted) cancelElevenSpeech("Mode muet actif.");
                         if (speech != null) speech.setMuted(muted);
                         else publishSpeech(view, muted ? "Mode muet actif." : "Voix réactivée.", new org.json.JSONArray(), false, muted);
                         return true;
@@ -613,6 +632,112 @@ public final class MainActivity extends Activity {
         return resumed && hub == view && view != null && HOME.equals(view.getUrl());
     }
 
+    private void publishEleven(WebView view, String message, boolean configured, boolean busy) {
+        if (!trustedVoiceView(view)) return;
+        view.evaluateJavascript("window.ASTOR_ELEVEN && window.ASTOR_ELEVEN.state("
+                + JSONObject.quote(message) + "," + configured + "," + busy + ");", null);
+    }
+    private boolean ensureEleven(WebView view) {
+        if (!trustedVoiceView(view)) return false;
+        try {
+            if (elevenCredentials == null) elevenCredentials = new ElevenCredentials(this);
+            if (elevenSpeech == null) elevenSpeech = new ElevenSpeech(this, elevenCredentials,
+                    (message, configured, busy) -> publishEleven(view, message, configured, busy));
+            elevenSpeech.state(elevenCredentials.configured()
+                    ? "Voix ElevenLabs choisie. Clé enregistrée ; accès à tester sur demande."
+                    : "Voix ElevenLabs choisie. Configurez votre clé API sur ce téléphone.");
+            return true;
+        } catch (RuntimeException error) {
+            publishEleven(view, "Configuration vocale indisponible sur cet appareil.", false, false); return false;
+        }
+    }
+    private void cancelElevenSpeech(String message) {
+        if (voiceOnlineDialog != null) { voiceOnlineDialog.dismiss(); voiceOnlineDialog = null; }
+        if (elevenSpeech != null) elevenSpeech.cancel(message);
+    }
+    private void showElevenConfiguration(WebView view) {
+        if (!trustedVoiceView(view) || voiceOnlineDialog != null || !ensureEleven(view)) return;
+        if (elevenSpeech.busy()) elevenSpeech.cancel("Lecture arrêtée pour configurer la voix.");
+        android.widget.EditText input = new android.widget.EditText(this);
+        input.setHint("Clé API ElevenLabs");
+        input.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        input.setImeOptions(android.view.inputmethod.EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING);
+        input.setSaveEnabled(false);
+        input.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO);
+        input.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(256)});
+        int padding = (int)(20 * getResources().getDisplayMetrics().density);
+        LinearLayout content = new LinearLayout(this); content.setOrientation(LinearLayout.VERTICAL);
+        content.setPadding(padding, padding, padding, padding);
+        TextView explanation = new TextView(this);
+        explanation.setText("Voix choisie : " + ElevenPolicy.VOICE_ID
+                + "\nSaisissez votre clé API ElevenLabs. Elle sera chiffrée sur ce téléphone, jamais incluse dans l’APK ni dans le Hub."
+                + "\nAucun test ni envoi au service n’est effectué lors de l’enregistrement.");
+        content.addView(explanation); content.addView(input);
+        AlertDialog dialog = new AlertDialog.Builder(this).setTitle("Configurer ElevenLabs").setView(content)
+                .setNegativeButton("Annuler", (d,w) -> input.setText(""))
+                .setPositiveButton("Enregistrer", (d,w) -> {
+                    if (!trustedVoiceView(view)) return;
+                    String value = input.getText().toString().trim(); input.setText("");
+                    if (!ElevenPolicy.validKey(value)) {
+                        publishEleven(view, "Format de clé invalide. Saisissez uniquement la clé API.", elevenCredentials.configured(), false); return;
+                    }
+                    publishEleven(view, "Enregistrement chiffré de la clé…", elevenCredentials.configured(), false);
+                    voiceSettingsWorker.execute(() -> {
+                        String message;
+                        try { elevenCredentials.save(value); message = "Clé enregistrée. Touchez Tester ElevenLabs pour vérifier la voix ; le texte sera affiché avant envoi."; }
+                        catch (Exception error) { message = "Enregistrement impossible. Verrouillez puis déverrouillez ASTOR et réessayez ; la clé précédente est conservée."; }
+                        String outcome = message;
+                        runOnUiThread(() -> { if (trustedVoiceView(view)) publishEleven(view, outcome, elevenCredentials.configured(), false); });
+                    });
+                }).create();
+        voiceOnlineDialog = dialog;
+        dialog.setOnDismissListener(d -> { input.setText(""); if (voiceOnlineDialog == dialog) voiceOnlineDialog = null; });
+        dialog.show();
+        if (dialog.getWindow() != null) dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
+    }
+    private void forgetElevenCredential(WebView view) {
+        if (!trustedVoiceView(view) || voiceOnlineDialog != null || !ensureEleven(view)) return;
+        AlertDialog dialog = new AlertDialog.Builder(this).setTitle("Retirer la clé ElevenLabs ?")
+                .setMessage("La clé sera retirée de ce téléphone. Cela ne révoque pas la clé chez ElevenLabs. La voix locale reste disponible.")
+                .setNegativeButton("Annuler", null).setPositiveButton("Retirer", (d,w) -> {
+                    if (!trustedVoiceView(view)) return;
+                    cancelElevenSpeech(null);
+                    voiceSettingsWorker.execute(() -> {
+                        String message;
+                        try { elevenCredentials.forget(); message = "Clé retirée de ce téléphone."; }
+                        catch (RuntimeException error) { message = "Retrait impossible ; la configuration précédente est conservée."; }
+                        String outcome = message;
+                        runOnUiThread(() -> { if (trustedVoiceView(view)) publishEleven(view, outcome, elevenCredentials.configured(), false); });
+                    });
+                }).create();
+        voiceOnlineDialog = dialog;
+        dialog.setOnDismissListener(d -> { if (voiceOnlineDialog == dialog) voiceOnlineDialog = null; }); dialog.show();
+    }
+    private void askElevenSpeech(WebView view, String raw) {
+        if (!trustedVoiceView(view) || voiceOnlineDialog != null || !ensureEleven(view) || elevenSpeech.busy()) return;
+        if (getSharedPreferences("astor-voice", MODE_PRIVATE).getBoolean("muted", false)) {
+            publishEleven(view, "Mode muet actif. Désactivez Muet avant d’envoyer un texte.", elevenCredentials.configured(), false); return;
+        }
+        if (!elevenCredentials.configured()) { publishEleven(view, "Configurez d’abord votre clé API ElevenLabs.", false, false); return; }
+        String text;
+        try { text = ElevenPolicy.text(raw); }
+        catch (IllegalArgumentException error) { publishEleven(view, "Choisissez un texte de 1 à 800 caractères.", true, false); return; }
+        AlertDialog dialog = new AlertDialog.Builder(this).setTitle("Lire avec ElevenLabs ?")
+                .setMessage("Seul le texte ci-dessous sera envoyé à ElevenLabs. Cette lecture utilise les crédits de votre compte."
+                        + "\nVoix : " + ElevenPolicy.VOICE_ID + "\n\n" + text)
+                .setNegativeButton("Annuler", null).setPositiveButton("Envoyer et lire", (d,w) -> {
+                    if (!trustedVoiceView(view) || getSharedPreferences("astor-voice", MODE_PRIVATE).getBoolean("muted", false)) return;
+                    if (speech != null) speech.stop(null); stopVoice(); stopIntro(); armIdleLock();
+                    elevenSpeech.speakApproved(text);
+                }).create();
+        voiceOnlineDialog = dialog;
+        dialog.setOnDismissListener(d -> { if (voiceOnlineDialog == dialog) voiceOnlineDialog = null; }); dialog.show();
+    }
+    private void closeElevenSpeech() {
+        cancelElevenSpeech(null);
+        if (elevenSpeech != null) { elevenSpeech.close(); elevenSpeech = null; }
+    }
+
     private void publishSpeech(WebView view, String message, org.json.JSONArray voices, boolean ready, boolean muted) {
         if (!trustedVoiceView(view)) return;
         view.evaluateJavascript("window.ASTOR_SPEECH && window.ASTOR_SPEECH.state("
@@ -648,6 +773,7 @@ public final class MainActivity extends Activity {
 
     private void startVoice(WebView view) {
         if (!trustedVoiceView(view)) return;
+        cancelElevenSpeech("Lecture arrêtée pour la dictée.");
         if (speech != null) speech.stop("Lecture arrêtée pour la dictée.");
         if (voiceDictation != null) {
             stopVoice();
@@ -950,6 +1076,7 @@ public final class MainActivity extends Activity {
     }
 
     private void disposeHub() {
+        closeElevenSpeech();
         closeSpeech();
         ++fileGeneration;
         cancelInternet();
@@ -1024,6 +1151,7 @@ public final class MainActivity extends Activity {
         if (localLlm != null) localLlm.close();
         internetLookup.close();
         fileReader.shutdownNow();
+        voiceSettingsWorker.shutdownNow();
         super.onDestroy();
     }
     @Override public void onBackPressed() {

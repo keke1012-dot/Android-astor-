@@ -18,6 +18,22 @@
     + '<label class="hint"><input type="checkbox" id="nativeSpeechMute"> Mode muet</label>'
     + '<p class="hint">Lecture du début de la réponse, jusqu’à 800 caractères. Le timbre dépend de la voix choisie.</p>'
     + '<p id="nativeSpeechStatus" class="statusline" role="status" aria-live="polite">Touchez Détecter pour préparer la voix française Android.</p>';
+  const online = document.createElement('div');
+  online.innerHTML = '<hr><strong>Voix choisie · ElevenLabs</strong>'
+    + '<p class="hint" style="overflow-wrap:anywhere">wDsJlOXPqcvIUKdLXjDs · français via le modèle multilingue</p>'
+    + '<p class="hint">Lecture en ligne. Le texte et les crédits utilisés seront confirmés avant chaque envoi.</p>'
+    + '<div class="toolbar"><button type="button" id="elevenConfigure">Configurer ElevenLabs</button>'
+    + '<button type="button" id="elevenTest" disabled>Tester ElevenLabs</button>'
+    + '<button type="button" id="elevenRead" disabled>Lire avec ElevenLabs</button>'
+    + '<button type="button" id="elevenForget">Retirer la clé</button></div>'
+    + '<p id="elevenSpeechStatus" class="statusline" role="status" aria-live="polite">Configurez votre clé dans le panneau Android. Aucun envoi automatique.</p>';
+  panel.append(online);
+  let elevenConfigured = false, elevenBusy = false;
+  const updateElevenButtons = () => {
+    const muted = $('nativeSpeechMute').checked;
+    $('elevenTest').disabled = !elevenConfigured || elevenBusy || muted;
+    $('elevenRead').disabled = !elevenConfigured || elevenBusy || muted;
+  };
   chat.before(panel);
   const nav = (action, args = {}) => {
     if (document.body.classList.contains('astor-locked')) return;
@@ -36,6 +52,19 @@
   };
   $('nativeSpeechStop').onclick = () => nav('tts-stop');
   $('nativeSpeechMute').onchange = () => nav('tts-mute', {enabled:$('nativeSpeechMute').checked ? '1' : '0'});
+  $('elevenConfigure').onclick = () => nav('eleven-config');
+  $('elevenForget').onclick = () => nav('eleven-forget');
+  $('elevenTest').onclick = () => nav('eleven-speak', {text:'Bonsoir Kellian. Je suis Astor. Le système est prêt. Nous avançons une étape à la fois.'});
+  $('elevenRead').onclick = () => {
+    const text = [...chat.querySelectorAll('.bubble:not(.user)')].at(-1)?.textContent?.trim();
+    if (!text) { $('elevenSpeechStatus').textContent = 'Aucune réponse à lire pour le moment.'; return; }
+    nav('eleven-speak', {text:text.slice(0, 800)});
+  };
+  window.ASTOR_ELEVEN = Object.freeze({state(message, configured, busy) {
+    if (document.body.classList.contains('astor-locked')) return;
+    $('elevenSpeechStatus').textContent = String(message || 'État ElevenLabs indisponible.');
+    elevenConfigured = configured === true; elevenBusy = busy === true; updateElevenButtons();
+  }});
   window.ASTOR_SPEECH = Object.freeze({state(message, voices, ready, muted) {
     if (document.body.classList.contains('astor-locked')) return;
     $('nativeSpeechStatus').textContent = String(message || 'État vocal indisponible.');
@@ -47,11 +76,12 @@
       select.append(option);
     }
     if ([...select.options].some(o => o.value === previous)) select.value = previous;
-    $('nativeSpeechMute').checked = muted === true;
+    $('nativeSpeechMute').checked = muted === true; updateElevenButtons();
     $('nativeSpeechTest').disabled = ready !== true || muted === true;
     $('nativeSpeechRead').disabled = ready !== true || muted === true;
   }});
   window.addEventListener('astor-lock-request', () => {
     $('nativeSpeechTest').disabled = true; $('nativeSpeechRead').disabled = true;
+    $('elevenTest').disabled = true; $('elevenRead').disabled = true;
   });
 })();
