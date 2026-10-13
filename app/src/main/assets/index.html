@@ -81,8 +81,8 @@ function times(a,b){const full=Array.from({length:5},zero);for(let i=0;i<3;i++)f
 function divide(a,b){if(b[1].n||b[2].n)throw Error('La division par une expression contenant x n’est pas prise en charge : son domaine doit être vérifié.');return a.map(v=>div(v,b[0]));}
 function normal(raw){return String(raw).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[×·]/g,'*').replace(/÷/g,'/').replace(/[−–]/g,'-').replace(/²/g,'^2').replace(/³/g,'^3').replace(/,/g,'.').replace(/\bfois\b/g,'*').trim();}
 function prepareExpression(raw){let s=normal(raw);if(!s.includes('=')&&/^[\d\s.()+*/^x%-]+$/.test(s))s=s.replace(/(\d)\s*x\s*(?=\d|\.\d)/g,'$1*');return s;}
-function parse(raw){
- const s=prepareExpression(raw);if(!s||s.length>250)throw Error('Expression vide ou trop longue (250 caractères maximum).');
+function parse(raw,variableContext=false){
+ const s=variableContext?normal(raw):prepareExpression(raw);if(!s||s.length>250)throw Error('Expression vide ou trop longue (250 caractères maximum).');
  const tokens=[];let position=0;
  while(position<s.length){if(/\s/.test(s[position])){position++;continue;}const m=s.slice(position).match(/^(?:\d+(?:\.\d*)?|\.\d+|[x+*/^()%-])/);if(!m)throw Error('Notation non reconnue. Utilisez les nombres, x, +, −, ×, ÷, les parenthèses et ^.');tokens.push(m[0]);position+=m[0].length;if(tokens.length>LIMIT)throw Error('Expression trop complexe.');}
  let index=0,depth=0;const peek=()=>tokens[index];const take=()=>tokens[index++];
@@ -101,7 +101,7 @@ function polynomialText(c){const terms=[];for(let degree=2;degree>=0;degree--){c
 function solveEquation(raw){const source=normal(raw),letters=[...new Set(source.match(/[a-z]/g)||[])];if(letters.length>1)throw Error('Une seule inconnue est prise en charge. Les systèmes demandent un autre solveur.');const variable=letters[0]||'x';if(!['x','y','t'].includes(variable))throw Error('Utilisez une inconnue x, y ou t.');const result=solveXEquation(source.replace(/[yt]/g,'x'));const lines=result.text.split('\n');lines[0]='Équation : '+source;result.text=[lines[0],...lines.slice(1).map(line=>line.replace(/(^|[^a-z])x(?![a-z])/g,(_,prefix)=>prefix+variable))].join('\n');return result;}
 function solveXEquation(raw){
  const parts=normal(raw).split('=');if(parts.length!==2||parts.some(p=>!p.trim()))throw Error('Écrivez une égalité complète, par exemple 2x + 3 = 11.');
- const left=parse(parts[0]),right=parse(parts[1]),c=minus(left,right),[constant,b,a]=c;
+ const left=parse(parts[0],true),right=parse(parts[1],true),c=minus(left,right),[constant,b,a]=c;
  const steps=['Équation : '+raw.trim(),'Après regroupement : '+polynomialText(c)+' = 0'];
  if(!a.n&&!b.n)return {kind:'equation',solutions:constant.n?[]:['tous les réels'],text:steps.join('\n')+'\n'+(constant.n?'Aucune solution.':'Égalité vraie pour tout x réel.')};
  if(!a.n){const x=div(neg(constant),b);const verified=eq(add(mul(b,x),constant),zero());if(!verified)throw Error('Vérification du résultat impossible.');return {kind:'equation',solutions:[display(x)],text:steps.join('\n')+'\n'+display(b)+'x = '+display(neg(constant))+'\nx = ('+display(neg(constant))+') / ('+display(b)+')\nx = '+display(x)+'\nVérification exacte : les deux membres sont égaux.'};}
