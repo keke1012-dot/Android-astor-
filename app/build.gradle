@@ -14,6 +14,7 @@ if (astorSigningPath) {
 
 android {
     namespace 'fr.astor.hades'
+    buildFeatures { buildConfig true }
     compileSdk 35
     ndkVersion '27.2.12479018'
     externalNativeBuild { cmake { path file('src/main/cpp/CMakeLists.txt'); version '3.22.1' } }
