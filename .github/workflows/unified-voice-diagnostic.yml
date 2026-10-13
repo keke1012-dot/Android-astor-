@@ -1,0 +1,140 @@
+name: ASTOR Unifiée 0.2.9.8 Accès ElevenLabs
+on:
+  push:
+    branches:
+      - feature/astor-0.2.9.8-voice-diagnostic
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: ggml-org/llama.cpp
+          ref: 4762ad7316dcdec20016ab5985fb46a27902204d
+          path: third_party/llama.cpp
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Locate Android SDK manager
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
+          SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMANAGER" ]; then
+            SDKMANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager -perm /111 2>/dev/null | head -n 1)"
+          fi
+          if [ -z "$SDKMANAGER" ] || [ ! -x "$SDKMANAGER" ]; then
+            echo "::error::Android sdkmanager unavailable on runner"
+            exit 1
+          fi
+          echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "SDKMANAGER=$SDKMANAGER" >> "$GITHUB_ENV"
+      - name: Accept Android SDK licenses
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +o pipefail
+          yes | "$SDKMANAGER" --sdk_root="$ANDROID_SDK_ROOT" --licenses > /tmp/astor-sdk-licenses.log 2>&1
+          result=${PIPESTATUS[1]}
+          set -o pipefail
+          if [ "$result" -ne 0 ]; then
+            tail -n 50 /tmp/astor-sdk-licenses.log
+            exit "$result"
+          fi
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Install Android toolchain
+        run: '"$SDKMANAGER" --sdk_root="$ANDROID_SDK_ROOT" "platforms;android-35" "build-tools;35.0.0" "ndk;27.2.12479018" "cmake;3.22.1"'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify local and Internet regressions
+        run: |
+          node tests_v025/guardrails.cjs
+          node test_web.cjs
+          node test_vault_security.cjs
+          node test_mnemosyne.cjs
+          node test_durable_memory.cjs
+          node test_backup_transfer.cjs
+          node test_local_ai.cjs
+          node test_internet.cjs
+          node test_math.cjs
+          javac -d /tmp/astor-file-tests app/src/main/java/fr/astor/hades/FileTextPolicy.java tests_native/fr/astor/hades/FileTextPolicyTest.java
+          java -cp /tmp/astor-file-tests fr.astor.hades.FileTextPolicyTest
+          mkdir -p "$RUNNER_TEMP/astor-internet-tests"
+          javac -d "$RUNNER_TEMP/astor-internet-tests" app/src/main/java/fr/astor/hades/InternetPolicy.java tests_native/fr/astor/hades/InternetPolicyTest.java
+          java -cp "$RUNNER_TEMP/astor-internet-tests" fr.astor.hades.InternetPolicyTest
+      - name: Verify Learning, native model policy and voice
+        run: |
+          mkdir -p "$RUNNER_TEMP/astor-unified-tests"
+          javac -d "$RUNNER_TEMP/astor-unified-tests" app/src/main/java/fr/astor/hades/LearningIndex.java app/src/main/java/fr/astor/hades/LearningPrompt.java tests_v025/LearningIndexRegression.java
+          java -cp "$RUNNER_TEMP/astor-unified-tests" fr.astor.hades.LearningIndexRegression
+          javac -d "$RUNNER_TEMP/astor-unified-tests" app/src/main/java/fr/astor/hades/PreferencePolicy.java tests_native/fr/astor/hades/PreferencePolicyTest.java
+          java -cp "$RUNNER_TEMP/astor-unified-tests" fr.astor.hades.PreferencePolicyTest
+          javac -d "$RUNNER_TEMP/astor-unified-tests" app/src/main/java/fr/astor/hades/LocalLlm.java app/src/main/java/fr/astor/hades/CognitiveEngine.java tests_native/fr/astor/hades/LocalLlmFileTest.java
+          java -cp "$RUNNER_TEMP/astor-unified-tests" fr.astor.hades.LocalLlmFileTest
+          javac -cp "$RUNNER_TEMP/astor-unified-tests" -d "$RUNNER_TEMP/astor-unified-tests" tests_native/fr/astor/hades/LocalLlmCompletionRegression.java
+          java -cp "$RUNNER_TEMP/astor-unified-tests" fr.astor.hades.LocalLlmCompletionRegression
+          javac -d "$RUNNER_TEMP/astor-unified-tests" app/src/main/java/fr/astor/hades/VoiceDictation.java $(find tests_voice -name '*.java')
+          java -cp "$RUNNER_TEMP/astor-unified-tests" fr.astor.hades.VoiceDictationTest
+      - name: Verify metallic PCM
+        run: |
+          javac -d "$RUNNER_TEMP/astor-voice-pcm" app/src/main/java/fr/astor/hades/MetallicPcm.java tests_native/fr/astor/hades/MetallicPcmTest.java
+          java -cp "$RUNNER_TEMP/astor-voice-pcm" fr.astor.hades.MetallicPcmTest
+      - name: Verify ElevenLabs policy and credential envelope
+        run: |
+          javac -d "$RUNNER_TEMP/astor-eleven-tests" app/src/main/java/fr/astor/hades/ElevenPolicy.java app/src/main/java/fr/astor/hades/CredentialEnvelope.java tests_native/fr/astor/hades/ElevenPolicyTest.java tests_native/fr/astor/hades/CredentialEnvelopeTest.java
+          java -cp "$RUNNER_TEMP/astor-eleven-tests" fr.astor.hades.ElevenPolicyTest
+          java -cp "$RUNNER_TEMP/astor-eleven-tests" fr.astor.hades.CredentialEnvelopeTest
+      - name: Verify interface
+        working-directory: tests_ui
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          node test-ui.cjs
+          node test-files.cjs
+          node test-unified.cjs
+          node test-math.cjs
+          node test-speech.cjs
+          node test-eleven.cjs
+          node test-voice-diagnostic.cjs
+      - name: Verify rendered mobile interface
+        working-directory: tests_ui
+        run: |
+          npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.62.1
+          npx playwright install --with-deps chromium
+          node visual-ui.cjs
+      - name: Compile and lint unified APK
+        run: gradle --no-daemon :app:assembleRelease :app:lintRelease -PastorUnifiedCandidate
+      - name: Prepare unsigned candidate for compatible private signing
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/release/app-release-unsigned.apk dist/Astor-0.2.9.8-Unifiee-UNSIGNED.apk
+          cp docs/UNIFIED_0298.md dist/UNIFIED_0298.md
+          cp "$ANDROID_HOME/build-tools/35.0.0/lib/apksigner.jar" dist/apksigner.jar
+          "$ANDROID_HOME/build-tools/35.0.0/zipalign" -c -P 16 4 dist/Astor-0.2.9.8-Unifiee-UNSIGNED.apk
+          python3 - <<'PYVERIFY'
+          import runpy
+          metadata=runpy.run_path('scripts/verify_unified_update.py')['manifest_metadata']('dist/Astor-0.2.9.8-Unifiee-UNSIGNED.apk')
+          assert metadata['package']=='fr.astor.hades.unified.test.unified029'
+          assert metadata['versionCode']==36
+          assert metadata['debuggable'] is False
+          assert metadata['allowBackup'] is False
+          assert metadata['cleartext'] is False
+          print('PASS: canonical identity, versionCode and privacy protections')
+          PYVERIFY
+          cd dist
+          sha256sum *.apk > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ASTOR-0.2.9.8-Unifiee-Unsigned
+          path: dist/
+          if-no-files-found: error

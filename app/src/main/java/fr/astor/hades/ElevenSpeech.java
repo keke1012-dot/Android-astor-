@@ -70,7 +70,7 @@ public final class ElevenSpeech {
                 connection.setDoOutput(true);
                 connection.setRequestProperty("xi-api-key", key);
                 connection.setRequestProperty("Content-Type", "application/json"); connection.setRequestProperty("Accept", "audio/mpeg");
-                connection.setRequestProperty("User-Agent", "AstorAndroid/0.2.9.6 (user-approved speech)");
+                connection.setRequestProperty("User-Agent", "AstorAndroid/0.2.9.8 (user-approved speech)");
                 JSONObject payload = new JSONObject(); payload.put("text", text); payload.put("model_id", ElevenPolicy.MODEL);
                 byte[] body = payload.toString().getBytes(StandardCharsets.UTF_8);
                 connection.setFixedLengthStreamingMode(body.length);

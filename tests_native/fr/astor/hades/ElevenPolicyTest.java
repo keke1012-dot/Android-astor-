@@ -15,7 +15,14 @@ public final class ElevenPolicyTest {
         check(!ElevenPolicy.mp3("{error}".getBytes(java.nio.charset.StandardCharsets.UTF_8)));
         check(ElevenPolicy.error(401).contains("Clé API"));
         check(ElevenPolicy.error(404).contains("Ajoutez"));
-        check(ElevenPolicy.error(429).contains("aucun nouvel essai"));
+        check(ElevenPolicy.error(429).contains("Aucun nouvel essai"));
+        for (int code : new int[]{400,401,402,403,404,422,429,500,502,503,307,418}) {
+            check(ElevenPolicy.error(code).contains("HTTP " + code));
+            check(ElevenPolicy.error(code).contains("Aucun nouvel essai automatique"));
+        }
+        check(ElevenPolicy.error(503).contains("service distant"));
+        check(ElevenPolicy.error(400).contains("Requête refusée"));
+        check(ElevenPolicy.error(307).contains("Redirection"));
         System.out.println("PASS: fixed ElevenLabs voice/endpoint, bounded exact text, header-injection rejection, MP3 format and actionable errors");
     }
 }

@@ -23,10 +23,16 @@ public final class ElevenPolicy {
                 || ((bytes[0] & 255) == 255 && (bytes[1] & 224) == 224));
     }
     public static String error(int status) {
-        if (status == 401) return "Clé API refusée. Vérifiez la clé dans Configurer ElevenLabs.";
-        if (status == 403) return "Accès à la voix refusé. Vérifiez les permissions de la clé et l’accès à cette voix dans votre compte.";
-        if (status == 404) return "Cette voix n’est pas accessible. Ajoutez la voix choisie à votre bibliothèque ElevenLabs.";
-        if (status == 402 || status == 429) return "Crédits ou limite ElevenLabs atteints. Vérifiez votre compte ; aucun nouvel essai automatique.";
-        return "Service vocal indisponible. Aucun nouvel essai automatique ; la voix Android locale reste disponible.";
+        String prefix = "ElevenLabs · HTTP " + status + " : ";
+        String reason;
+        if (status == 400 || status == 422) reason = "Requête refusée. Vérifiez que la voix choisie fonctionne dans votre compte ElevenLabs.";
+        else if (status == 401) reason = "Clé API refusée. Vérifiez la clé dans Configurer ElevenLabs.";
+        else if (status == 403) reason = "Accès refusé. Vérifiez les permissions de synthèse vocale de la clé et l’accès à cette voix dans votre compte.";
+        else if (status == 404) reason = "Cette voix n’est pas accessible. Ajoutez la voix choisie à votre bibliothèque ElevenLabs.";
+        else if (status == 402 || status == 429) reason = "Crédits ou limite ElevenLabs atteints. Vérifiez votre compte.";
+        else if (status >= 500 && status <= 599) reason = "Erreur du service distant. Un nouvel essai manuel pourra être effectué plus tard.";
+        else if (status >= 300 && status <= 399) reason = "Redirection du service refusée pour protéger la clé API.";
+        else reason = "Réponse inattendue du service. Communiquez ce code pour le diagnostic.";
+        return prefix + reason + " Aucun nouvel essai automatique ; la voix Android locale reste disponible.";
     }
 }
