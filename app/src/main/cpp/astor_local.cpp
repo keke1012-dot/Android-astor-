@@ -16,7 +16,7 @@ llama_model * model = nullptr;
 std::string loaded_location;
 bool initialized = false;
 using Clock = std::chrono::steady_clock;
-#ifndef NDEBUG
+#if defined(ASTOR_PERF_DIAGNOSTICS) && defined(__ANDROID__)
 void perf(const char * stage, Clock::time_point start) {
     const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now() - start).count();
     __android_log_print(ANDROID_LOG_DEBUG, "AstorPerf", "%s_ms=%lld", stage, static_cast<long long>(ms));
