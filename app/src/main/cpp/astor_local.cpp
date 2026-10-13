@@ -1,4 +1,5 @@
 #include <jni.h>
+#include <android/log.h>
 #include "llama.h"
 #include <atomic>
 #include <algorithm>
@@ -15,6 +16,14 @@ llama_model * model = nullptr;
 std::string loaded_location;
 bool initialized = false;
 using Clock = std::chrono::steady_clock;
+#ifndef NDEBUG
+void perf(const char * stage, Clock::time_point start) {
+    const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now() - start).count();
+    __android_log_print(ANDROID_LOG_DEBUG, "AstorPerf", "%s_ms=%lld", stage, static_cast<long long>(ms));
+}
+#else
+void perf(const char *, Clock::time_point) {}
+#endif
 struct Abort { Clock::time_point started; uint64_t expected; };
 bool abort_decode(void * data) {
     auto * state = static_cast<Abort *>(data);
@@ -60,6 +69,7 @@ Java_fr_astor_hades_LocalLlm_nativeRelease(JNIEnv *, jclass) {
 
 extern "C" JNIEXPORT jbyteArray JNICALL
 Java_fr_astor_hades_LocalLlm_nativeGenerate(JNIEnv * env, jclass, jstring path, jbyteArray input, jlong generation, jobject listener) {
+    const auto nativeStart = Clock::now();
     std::lock_guard<std::mutex> guard(engine_mutex);
     if (revision.load() != static_cast<uint64_t>(generation)) return bytes(env, "ERREUR_LOCAL:Génération annulée.");
     if (!initialized) {
@@ -78,6 +88,7 @@ Java_fr_astor_hades_LocalLlm_nativeGenerate(JNIEnv * env, jclass, jstring path, 
         if (model) loaded_location = location;
     }
     env->ReleaseStringUTFChars(path, location);
+    perf("model_ready", nativeStart);
     if (revision.load() != static_cast<uint64_t>(generation)) return bytes(env, "ERREUR_LOCAL:Génération annulée.");
     if (!model) return bytes(env, "ERREUR_LOCAL:Le modèle ne peut pas être chargé. Fermez les autres applications et réessayez.");
     const auto size = env->GetArrayLength(input);
@@ -90,11 +101,13 @@ Java_fr_astor_hades_LocalLlm_nativeGenerate(JNIEnv * env, jclass, jstring path, 
     std::vector<llama_token> tokens(n);
     if (llama_tokenize(vocab, prompt.data(), prompt.size(), tokens.data(), tokens.size(), true, true) < 0)
         return bytes(env, "ERREUR_LOCAL:La demande ne peut pas être préparée.");
+    perf("tokenized", nativeStart);
     auto params = llama_context_default_params();
     params.n_ctx = 1024; params.n_batch = 32; params.n_ubatch = 32;
     params.n_threads = 4; params.n_threads_batch = 4; params.no_perf = true;
     std::unique_ptr<llama_context, decltype(&llama_free)> context(llama_init_from_model(model, params), llama_free);
     if (!context) return bytes(env, "ERREUR_LOCAL:Mémoire disponible insuffisante pour le modèle.");
+    perf("context_ready", nativeStart);
     Abort abort{Clock::now(), static_cast<uint64_t>(generation)}; llama_set_abort_callback(context.get(), abort_decode, &abort);
     auto sampler_params = llama_sampler_chain_default_params(); sampler_params.no_perf = true;
     std::unique_ptr<llama_sampler, decltype(&llama_sampler_free)> sampler(llama_sampler_chain_init(sampler_params), llama_sampler_free);
@@ -118,12 +131,14 @@ Java_fr_astor_hades_LocalLlm_nativeGenerate(JNIEnv * env, jclass, jstring path, 
         const int result = llama_decode(context.get(), batch);
         if (result) return bytes(env, decode_error(result, abort, i, n));
     }
+    perf("prefill_done", nativeStart);
     progress(env, listener, "Rédaction de la réponse sur votre téléphone…");
     std::string output;
     bool limited = false;
     for (int i = 0; i < 128; ++i) {
         if (abort_decode(&abort)) { limited = true; break; }
         llama_token token = llama_sampler_sample(sampler.get(), context.get(), -1);
+        if (i == 0) perf("first_token", nativeStart);
         if (llama_vocab_is_eog(vocab, token)) break;
         char piece[256]; int length = llama_token_to_piece(vocab, token, piece, sizeof(piece), 0, false);
         if (length < 0) return bytes(env, "ERREUR_LOCAL:Réponse non décodable.");
@@ -135,5 +150,6 @@ Java_fr_astor_hades_LocalLlm_nativeGenerate(JNIEnv * env, jclass, jstring path, 
     if (revision.load() != static_cast<uint64_t>(generation)) return bytes(env, "ERREUR_LOCAL:Génération annulée.");
     if (output.empty()) return bytes(env, "ERREUR_LOCAL:Pas de réponse produite. Essayez une question plus courte.");
     if (limited) output += "\n[Réponse limitée pour ce prototype local.]";
+    perf("native_done", nativeStart);
     return bytes(env, output);
 }
