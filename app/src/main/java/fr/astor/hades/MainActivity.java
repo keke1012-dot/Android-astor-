@@ -86,6 +86,74 @@ public final class MainActivity extends Activity {
     private Animatable gateAnimation;
     private VoiceDictation voiceDictation;
     private static final int MICROPHONE_REQUEST = 71;
+    private static final int FILE_REQUEST = 72;
+    private final java.util.concurrent.ExecutorService fileReader = java.util.concurrent.Executors.newSingleThreadExecutor();
+    private long fileGeneration;
+    private boolean filePickerPending;
+
+    private android.content.SharedPreferences filePreferences() {
+        return getSharedPreferences("astor-selected-file", MODE_PRIVATE);
+    }
+    private void chooseFile(WebView view) {
+        if (!trustedVoiceView(view) || filePickerPending || localLlm.isBusy()) return;
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        filePickerPending = true;
+        try { startActivityForResult(intent, FILE_REQUEST); }
+        catch (ActivityNotFoundException ex) {
+            filePickerPending = false;
+            publishFile(view, "{}", "Sélecteur de fichiers Android indisponible.");
+        }
+    }
+    private void forgetFile() {
+        ++fileGeneration;
+        String raw = filePreferences().getString("uri", "");
+        filePreferences().edit().remove("uri").apply();
+        if (!raw.isEmpty()) {
+            try { getContentResolver().releasePersistableUriPermission(Uri.parse(raw), Intent.FLAG_GRANT_READ_URI_PERMISSION); }
+            catch (SecurityException ignored) { /* Already revoked by Android. */ }
+        }
+        if (trustedVoiceView(hub)) publishFile(hub, "{}", "Accès retiré. Le fichier original est conservé.");
+    }
+    private void publishFile(WebView view, String json, String error) {
+        if (!trustedVoiceView(view)) return;
+        view.evaluateJavascript("window.ASTOR_FILES && window.ASTOR_FILES.result("
+            + JSONObject.quote(json) + "," + JSONObject.quote(error) + ")", null);
+    }
+    private void readSelectedFile(WebView view) {
+        if (!trustedVoiceView(view)) return;
+        String raw = filePreferences().getString("uri", "");
+        if (raw.isEmpty()) return;
+        long generation = ++fileGeneration;
+        fileReader.execute(() -> {
+            String json = "{}", error = "";
+            try { json = SelectedFileReader.read(getContentResolver(), Uri.parse(raw)).toString(); }
+            catch (Exception ex) { error = "Fichier inaccessible. Retirez l’accès ou sélectionnez-le à nouveau."; }
+            final String result = json, failure = error;
+            runOnUiThread(() -> {
+                if (generation == fileGeneration && trustedVoiceView(view)) publishFile(view, result, failure);
+            });
+        });
+    }
+    @Override protected void onActivityResult(int request, int result, Intent data) {
+        super.onActivityResult(request, result, data);
+        if (request != FILE_REQUEST || !filePickerPending) return;
+        filePickerPending = false;
+        if (result != RESULT_OK || data == null || data.getData() == null) return;
+        Uri uri = data.getData();
+        if (!"content".equals(uri.getScheme()) || (data.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION) == 0) return;
+        try {
+            getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            String previous = filePreferences().getString("uri", "");
+            if (!previous.equals(uri.toString())) forgetFile();
+            filePreferences().edit().putString("uri", uri.toString()).apply();
+            if (trustedVoiceView(hub)) readSelectedFile(hub);
+        } catch (SecurityException ex) {
+            if (status != null) status.setText("Accès durable indisponible pour ce fournisseur. Choisissez un fichier local.");
+        }
+    }
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -284,6 +352,7 @@ public final class MainActivity extends Activity {
             @Override public void onPageFinished(WebView view, String url) {
                 if (trustedVoiceView(view) && HOME.equals(url)) {
                     publishLocalModelState(view);
+                    readSelectedFile(view);
                 }
             }
             @Override public void onReceivedError(WebView view, WebResourceRequest request, android.webkit.WebResourceError error) {
@@ -302,6 +371,12 @@ public final class MainActivity extends Activity {
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 if (!request.isForMainFrame()) return true;
                 String url = request.getUrl().toString();
+                if (url.equals("astor-native://files-pick") && request.hasGesture() && trustedVoiceView(view)) {
+                    chooseFile(view); return true;
+                }
+                if (url.equals("astor-native://files-forget") && request.hasGesture() && trustedVoiceView(view)) {
+                    forgetFile(); return true;
+                }
                 if ("astor-native".equals(request.getUrl().getScheme())
                         && "internet-cancel".equals(request.getUrl().getHost()) && trustedVoiceView(view)) {
                     cancelInternet();
@@ -750,6 +825,7 @@ public final class MainActivity extends Activity {
     }
 
     private void disposeHub() {
+        ++fileGeneration;
         cancelInternet();
         if (localLlm != null) localLlm.cancel();
         stopVoice();
@@ -820,6 +896,7 @@ public final class MainActivity extends Activity {
         disposeHub();
         if (localLlm != null) localLlm.close();
         internetLookup.close();
+        fileReader.shutdownNow();
         super.onDestroy();
     }
     @Override public void onBackPressed() {
