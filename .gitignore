@@ -14,3 +14,10 @@ dist/
 third_party/
 app/.cxx/
 *.gguf
+
+.env
+.env.*
+!.env.example
+*.p12
+__pycache__/
+.pytest_cache/
