@@ -1,7 +1,7 @@
 package fr.astor.hades;
 
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import java.io.UnsupportedEncodingException;
 
 /** Only the explicitly entered query may leave the device. */
 public final class InternetPolicy {
@@ -14,7 +14,8 @@ public final class InternetPolicy {
         return value;
     }
     public static String encoded(String raw) {
-        return URLEncoder.encode(query(raw), StandardCharsets.UTF_8);
+        try { return URLEncoder.encode(query(raw), "UTF-8"); }
+        catch (UnsupportedEncodingException impossible) { throw new AssertionError(impossible); }
     }
     public static String endpoint(String raw) {
         return "https://fr.wikipedia.org/w/api.php?action=query&format=json&formatversion=2"
@@ -22,3 +23,4 @@ public final class InternetPolicy {
             + "&exchars=1800&gsrsearch=" + encoded(raw);
     }
 }
+
