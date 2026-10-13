@@ -12,6 +12,7 @@ const {chromium}=require('playwright');
   for(const view of ['console','internet','memory','modules','atlas','media']){
    await page.locator('#androidTab_'+view).click();
    const size=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:innerWidth}));
+   const stray=await page.evaluate(()=>[...document.querySelector('main').children].filter(el=>!el.hidden).length);assert.equal(stray,1,`Unexpected panel in ${view}`);
    assert(size.scroll<=size.width+1,`${view}: horizontal overflow at ${width}x${height}: ${JSON.stringify(size)}`);
    const tab=await page.locator('#androidTab_'+view).boundingBox();assert(tab.width>=44&&tab.height>=44);
    if(height>540&&(view==='console'||view==='internet'))await page.screenshot({path:path.join(out,`${view}-${width}.png`),fullPage:true});

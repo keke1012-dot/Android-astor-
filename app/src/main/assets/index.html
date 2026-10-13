@@ -813,7 +813,7 @@ $('atlasClear').addEventListener('click',()=>{input.value='';evidence.value='';r
     card.setAttribute("aria-label","Mnémosyne");
     card.style.cssText="margin:12px 0;padding:12px;border:1px solid rgba(255,255,255,.16);border-radius:12px;background:rgba(0,0,0,.12)";
     card.innerHTML='<strong>MNÉMOSYNE · V3.9.7</strong><div style="opacity:.8;margin-top:5px">Bibliothèque locale : '+MNEMOSYNE.length+' fiches · souvenirs personnels chiffrés dans Notes</div>';
-    const host=document.querySelector("main")||document.querySelector(".container")||document.body;
+    const host=document.getElementById("androidModulesPanel")||document.querySelector("main")||document.body;
     host.appendChild(card);
   };
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",mount,{once:true}); else mount();
