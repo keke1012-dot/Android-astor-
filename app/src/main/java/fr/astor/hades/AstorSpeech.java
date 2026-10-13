@@ -43,11 +43,11 @@ public final class AstorSpeech {
     private static final class Job {
         final String id;
         final File raw, output;
-        final boolean metallic;
+        final String profile;
         volatile Future<?> task;
         Runnable watchdog;
-        Job(String id, File directory, boolean metallic) {
-            this.id = id; this.metallic = metallic;
+        Job(String id, File directory, String profile) {
+            this.id = id; this.profile = profile;
             raw = new File(directory, id + "-raw.wav"); output = new File(directory, id + "-voice.wav");
         }
         void delete() { raw.delete(); output.delete(); }
@@ -81,8 +81,13 @@ public final class AstorSpeech {
                 @Override public void onError(String id, int code) { onError(id); }
             });
             ready = true;
-            publish("Voix française native disponible. Choisissez une voix et touchez Tester.");
+            publish("Voix française locale prête. Touchez Tester la voix.");
         } catch (RuntimeException error) { publish("Le moteur vocal ne fournit pas ses voix. Vérifiez les paramètres Android."); }
+    }
+    public void refresh() {
+        if (closed) return;
+        if (ready) publish("Voix française locale prête.");
+        else { voices.clear(); initialized(TextToSpeech.SUCCESS); }
     }
     private void publish(String message) {
         if (closed) return;
@@ -94,7 +99,8 @@ public final class AstorSpeech {
         }
         callback.state(message, names, ready, muted);
     }
-    public void speak(String text, String voiceName, boolean metallic) {
+    public void speak(String text, String voiceName, String requestedProfile) {
+        String profile = "metal".equals(requestedProfile) ? "metal" : "grave".equals(requestedProfile) ? "grave" : "jarvis";
         if (closed) return;
         if (!ready) { publish("Le moteur vocal se prépare. Réessayez dans un instant."); return; }
         if (muted) { publish("Mode muet actif."); return; }
@@ -103,10 +109,10 @@ public final class AstorSpeech {
         stop(null);
         try {
             if (tts.setVoice(selected) != TextToSpeech.SUCCESS) { publish("Cette voix n’est pas prête. Choisissez-en une autre."); return; }
-            tts.setSpeechRate(metallic ? 0.96f : 0.88f);
-            tts.setPitch(metallic ? 0.9f : 0.75f);
+            tts.setSpeechRate("grave".equals(profile) ? 0.88f : 0.96f);
+            tts.setPitch("jarvis".equals(profile) ? 0.88f : "metal".equals(profile) ? 0.9f : 0.75f);
             String id = "voice-" + (++sequence) + "-" + java.util.UUID.randomUUID();
-            Job job = new Job(id, directory, metallic); current = job;
+            Job job = new Job(id, directory, profile); current = job;
             job.watchdog = () -> failed(id, "Lecture arrêtée après le délai maximal.");
             main.postDelayed(job.watchdog, 90_000);
             Bundle parameters = new Bundle();
@@ -114,7 +120,7 @@ public final class AstorSpeech {
             parameters.putString(TextToSpeech.Engine.KEY_FEATURE_EMBEDDED_SYNTHESIS, "true");
             int result = tts.synthesizeToFile(text, parameters, job.raw, id);
             if (result != TextToSpeech.SUCCESS) failed(id, "La synthèse vocale n’a pas démarré.");
-            else publish(metallic ? "Préparation locale de la voix métallique…" : "Préparation locale de la voix grave…");
+            else publish("Préparation locale de la voix ASTOR…");
         } catch (RuntimeException error) { stop("La lecture vocale a échoué."); }
     }
     private void synthesized(String id) {
@@ -124,7 +130,7 @@ public final class AstorSpeech {
             try {
                 if (job.raw.length() < 44 || job.raw.length() > 24_000_000) throw new IllegalArgumentException("Audio bounds");
                 MetallicPcm.Wave wave = MetallicPcm.decode(Files.readAllBytes(job.raw.toPath()));
-                byte[] output = MetallicPcm.encode(MetallicPcm.process(wave.samples, wave.rate, job.metallic), wave.rate);
+                byte[] output = MetallicPcm.encode(MetallicPcm.process(wave.samples, wave.rate, job.profile), wave.rate);
                 if (current != job || Thread.currentThread().isInterrupted()) return;
                 Files.write(job.output.toPath(), output);
                 job.raw.delete();
@@ -151,7 +157,7 @@ public final class AstorSpeech {
             owned.setOnPreparedListener(p -> {
                 if (player != p || current != job || closed || muted) return;
                 try { p.start(); } catch (RuntimeException error) { failed(job.id, "La lecture a échoué."); return; }
-                publish(job.metallic ? "ASTOR · lecture métallique en cours." : "ASTOR · lecture grave en cours.");
+                publish("ASTOR · lecture locale en cours.");
             });
             owned.setOnCompletionListener(p -> { if (player == p && current == job) stop("Lecture terminée."); });
             owned.setOnErrorListener((p, what, extra) -> { if (player == p && current == job) stop("La lecture audio a échoué."); return true; });

@@ -14,6 +14,11 @@ public final class MetallicPcmTest {
         check(MetallicPcm.decode(MetallicPcm.encode(output, rate)).samples.length == output.length);
         for (float x : MetallicPcm.process(new float[rate], rate, true)) check(x == 0);
         check(MetallicPcm.process(input, rate, false).length == input.length);
+        float[] assistant = MetallicPcm.process(input, rate, "jarvis");
+        check(assistant.length == (int)Math.ceil(rate / 0.97));
+        for (float x : assistant) check(Float.isFinite(x) && Math.abs(x) <= 0.800001);
+        for (float x : MetallicPcm.process(new float[rate], rate, "jarvis")) check(x == 0);
+        try { MetallicPcm.process(input, rate, "unknown"); throw new AssertionError(); } catch (IllegalArgumentException expected) {}
         try { MetallicPcm.decode(new byte[44]); throw new AssertionError(); } catch (IllegalArgumentException expected) {}
         try { MetallicPcm.process(new float[]{Float.NaN}, rate, true); throw new AssertionError(); } catch (IllegalArgumentException expected) {}
         try { MetallicPcm.process(new float[rate * 61], rate, true); throw new AssertionError(); } catch (IllegalArgumentException expected) {}

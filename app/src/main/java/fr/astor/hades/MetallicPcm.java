@@ -57,16 +57,22 @@ public final class MetallicPcm {
         return new Wave(rate, samples);
     }
     public static float[] process(float[] input, int rate, boolean metallic) {
+        return process(input, rate, metallic ? "metal" : "grave");
+    }
+    public static float[] process(float[] input, int rate, String profile) {
+        if (!("metal".equals(profile) || "grave".equals(profile) || "jarvis".equals(profile)))
+            throw new IllegalArgumentException("Unknown profile");
         if (rate < 8000 || rate > 96000 || input.length == 0 || input.length > rate * 60)
             throw new IllegalArgumentException("Audio bounds");
         for (float x : input) if (!Float.isFinite(x) || Math.abs(x) > 1)
             throw new IllegalArgumentException("Invalid PCM");
-        if (!metallic) return input.clone();
-        final double factor = 0.84, amount = 0.45;
+        if ("grave".equals(profile)) return input.clone();
+        final boolean assistant = "jarvis".equals(profile);
+        final double factor = assistant ? 0.97 : 0.84, amount = assistant ? 0.08 : 0.45;
         float[] out = new float[(int)Math.ceil(input.length / factor)];
         double highAlpha = 1 / (1 + 2 * Math.PI * 75 / rate);
-        double lowAlpha = 1 - Math.exp(-2 * Math.PI * 3800 / rate);
-        int delay = Math.max(1, (int)Math.round(rate * 0.024));
+        double lowAlpha = 1 - Math.exp(-2 * Math.PI * (assistant ? 6500 : 3800) / rate);
+        int delay = Math.max(1, (int)Math.round(rate * (assistant ? 0.015 : 0.024)));
         double previous = 0, high = 0, low = 0, peak = 0;
         for (int i = 0; i < out.length; i++) {
             if (Thread.currentThread().isInterrupted()) throw new IllegalStateException("Cancelled");

@@ -6,7 +6,7 @@ const w=dom.window,$=id=>w.document.getElementById(id);w.eval(script);
 assert($('nativeSpeechTest').disabled);$('nativeSpeechInit').click();assert.equal(w.__nativeURL,'astor-native://tts-init');
 w.ASTOR_SPEECH.state('Prêt',[{name:'<img src=x onerror=alert(1)>',lang:'fr-FR'}],true,false);
 assert.equal($('nativeSpeechVoice').querySelectorAll('img').length,0);assert(!$('nativeSpeechTest').disabled);
-$('nativeSpeechTest').click();let url=new URL(w.__nativeURL);assert.equal(url.hostname,'tts-speak');assert.equal(url.searchParams.get('mode'),'metal');assert.match(url.searchParams.get('text'),/Bonsoir Kellian/);
+$('nativeSpeechTest').click();let url=new URL(w.__nativeURL);assert.equal(url.hostname,'tts-speak');assert.equal(url.searchParams.get('mode'),'jarvis');assert.match(url.searchParams.get('text'),/Bonsoir Kellian/);
 const reply=w.document.createElement('div');reply.className='bubble';reply.textContent='x'.repeat(900);$('chatlog').append(reply);$('nativeSpeechRead').click();url=new URL(w.__nativeURL);assert.equal(url.searchParams.get('text').length,801);
 $('nativeSpeechMute').checked=true;$('nativeSpeechMute').dispatchEvent(new w.Event('change'));assert.equal(new URL(w.__nativeURL).searchParams.get('enabled'),'1');
 w.ASTOR_SPEECH.state('Muet',[],true,true);assert($('nativeSpeechTest').disabled);

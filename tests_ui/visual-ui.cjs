@@ -18,17 +18,17 @@ const {chromium}=require('playwright');
    if(height>540&&(view==='console'||view==='internet'))await page.screenshot({path:path.join(out,`${view}-${width}.png`),fullPage:true});
   }
   await page.locator('#androidTab_console').click();
-  await page.locator('#elevenQuickAccess').click();
+  await page.locator('#voiceQuickAccess').click();
   assert(await page.locator('#nativeSpeechPanel').evaluate(el=>el.open));
-  assert(await page.locator('#elevenConfigure').isVisible());
-  assert.equal(await page.locator('#localSpeechDrawer').evaluate(el=>el.open),false);
+  assert(await page.locator('#nativeSpeechInit').isVisible());
+  assert.equal(await page.locator('#elevenConfigure').count(),0);
   const expanded=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:innerWidth}));
-  assert(expanded.scroll<=expanded.width+1,'Expanded ElevenLabs panel overflows horizontally');
+  assert(expanded.scroll<=expanded.width+1,'Expanded local voice panel overflows horizontally');
   if(height>540){
-   const configure=await page.locator('#elevenConfigure').boundingBox();
+   const configure=await page.locator('#nativeSpeechInit').boundingBox();
    const navigation=await page.locator('#androidTab_console').boundingBox();
-   assert(configure.y>=0&&configure.y+configure.height<navigation.y,'Configure ElevenLabs is obscured by navigation');
-   await page.screenshot({path:path.join(out,`elevenlabs-${width}.png`),fullPage:true});
+   assert(configure.y>=0&&configure.y+configure.height<navigation.y,'Configure local voice is obscured by navigation');
+   await page.screenshot({path:path.join(out,`local-voice-${width}.png`),fullPage:true});
   }
   assert.equal(errors.length,0,errors.join('\n'));await page.close();
  }
