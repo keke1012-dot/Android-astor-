@@ -105,7 +105,7 @@ jobs:
           node test-math.cjs
           node test-speech.cjs
           node test-eleven.cjs
-          node test-voice-diagnostic.cjs
+          node test-voice-access.cjs
       - name: Verify rendered mobile interface
         working-directory: tests_ui
         run: |
