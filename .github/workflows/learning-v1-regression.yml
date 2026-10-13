@@ -16,6 +16,6 @@ jobs:
       - name: Compile learning index and regression tests
         run: |
           mkdir -p /tmp/astor-learning-test
-          javac -d /tmp/astor-learning-test app/src/main/java/fr/astor/hades/LearningIndex.java tests_v025/LearningIndexRegression.java
+          javac -d /tmp/astor-learning-test app/src/main/java/fr/astor/hades/LearningIndex.java app/src/main/java/fr/astor/hades/LearningPrompt.java tests_v025/LearningIndexRegression.java
       - name: Run learning regression
         run: java -cp /tmp/astor-learning-test fr.astor.hades.LearningIndexRegression

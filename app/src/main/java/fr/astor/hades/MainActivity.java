@@ -487,10 +487,38 @@ public final class MainActivity extends Activity {
                         .setMessage("Question : " + question + "\n\nCorrection proposée : " + correction
                                 + "\n\nMémoire temporaire : effacée au verrouillage.")
                         .setPositiveButton("Approuver", (dialog, which) -> {
-                            if (trustedVoiceView(view))
-                                learningIndex.approve(question, correction, true, System.currentTimeMillis());
+                            if (trustedVoiceView(view)) {
+                                boolean saved = learningIndex.approve(question, correction, true, System.currentTimeMillis());
+                                learningState(view, saved ? "Correction enregistrée pour cette session." : "Correction refusée : données invalides.");
+                            }
                         })
-                        .setNegativeButton("Refuser", null).show();
+                        .setNegativeButton("Refuser", (dialog, which) -> learningState(view, "Correction non enregistrée."))
+                        .setOnCancelListener(dialog -> learningState(view, "Correction annulée."))
+                        .show();
+            });
+        }
+        @android.webkit.JavascriptInterface public void answer(String id, String question, String prompt, boolean review) {
+            if (id == null || !id.matches("[0-9]{1,12}")) return;
+            runOnUiThread(() -> {
+                if (!trustedVoiceView(view)) return;
+                final String prepared;
+                try { prepared = LearningPrompt.prepare(learningIndex, question, prompt); }
+                catch (IllegalArgumentException invalid) { localResult(view, id, "", "Question ou contexte trop long."); return; }
+                view.setKeepScreenOn(true);
+                if (review && prepared.length() <= 2200) {
+                    new CognitiveEngine(localLlm).think(prepared, (reply, error) -> runOnUiThread(() -> {
+                        view.setKeepScreenOn(false);
+                        localResult(view, id, reply, error);
+                    }));
+                } else {
+                    localLlm.generate(prepared, new LocalLlm.Listener() {
+                        public void state(String message, int percent) { }
+                        public void done(String reply, String error) { runOnUiThread(() -> {
+                            view.setKeepScreenOn(false);
+                            localResult(view, id, reply, error);
+                        }); }
+                    });
+                }
             });
         }
         @android.webkit.JavascriptInterface public void cognitive(String id, String prompt) {
@@ -527,6 +555,16 @@ public final class MainActivity extends Activity {
                 });
             });
         }
+    }
+    private void localResult(WebView view, String id, String reply, String error) {
+        if (!trustedVoiceView(view)) return;
+        view.evaluateJavascript("window.ASTOR_LOCAL_AI && window.ASTOR_LOCAL_AI.result("
+                + JSONObject.quote(id) + "," + JSONObject.quote(reply) + "," + JSONObject.quote(error) + ")", null);
+    }
+    private void learningState(WebView view, String message) {
+        if (!trustedVoiceView(view)) return;
+        view.evaluateJavascript("window.ASTOR_LEARNING && window.ASTOR_LEARNING.state("
+                + learningIndex.size() + "," + JSONObject.quote(message) + ")", null);
     }
     private void localAiState(WebView view, String message, boolean ready) {
         view.evaluateJavascript("window.ASTOR_LOCAL_AI && window.ASTOR_LOCAL_AI.state("

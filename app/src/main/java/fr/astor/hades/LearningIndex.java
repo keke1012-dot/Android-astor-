@@ -70,7 +70,7 @@ public final class LearningIndex {
     private static String normalize(String s) {
         return Normalizer.normalize(s, Normalizer.Form.NFD)
                 .replaceAll("\\p{M}+", "").toLowerCase(Locale.ROOT)
-                .replaceAll("[^a-z0-9 ]", " ").replaceAll("\\s+", " ").trim();
+                .replaceAll("\\s+", " ").trim().replaceAll("[!?]+$", "").trim();
     }
 
     private static double overlap(String a, String b) {

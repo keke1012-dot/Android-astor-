@@ -19,6 +19,12 @@ public final class LearningIndexRegression {
         check(!memory.approve("question", " ", true, 3), "reject empty");
         check(!memory.approve("question", "correction", true, -1), "reject timestamp");
         check(memory.retrieve("question", 0).isEmpty(), "limit zero");
+        check(memory.approve("12 + 1", "13", true, 3), "operator correction");
+        check(memory.retrieve("12 - 1", 1).isEmpty(), "different operator must not match");
+        check(memory.retrieve("12.1", 1).isEmpty(), "decimal must not match operator");
+        String formatted = "Tu es ASTOR. Réponds en français. Question : 12 + 1";
+        check(LearningPrompt.prepare(memory, "12 + 1", formatted).contains("13"), "raw question recall");
+        check(!LearningPrompt.prepare(memory, "12 - 1", formatted).contains("Correction approuvée"), "unrelated raw question");
         memory.clear();
         check(memory.size() == 0, "session clear");
         System.out.println("Learning V1 regression: PASS");
