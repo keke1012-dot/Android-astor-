@@ -67,6 +67,9 @@ public final class MainActivity extends Activity {
     private FrameLayout root;
     private WebView hub;
     private LocalLlm localLlm;
+    private final InternetLookup internetLookup = new InternetLookup();
+    private long internetGeneration;
+    private AlertDialog internetDialog;
     private CancellationSignal cancellation;
     private boolean authenticating;
     private boolean resumed;
@@ -299,6 +302,17 @@ public final class MainActivity extends Activity {
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 if (!request.isForMainFrame()) return true;
                 String url = request.getUrl().toString();
+                if ("astor-native".equals(request.getUrl().getScheme())
+                        && "internet-cancel".equals(request.getUrl().getHost()) && trustedVoiceView(view)) {
+                    cancelInternet();
+                    return true;
+                }
+                if ("astor-native".equals(request.getUrl().getScheme())
+                        && "internet".equals(request.getUrl().getHost()) && request.hasGesture()
+                        && trustedVoiceView(view)) {
+                    askInternet(view, request.getUrl());
+                    return true;
+                }
                 if (url.equals("astor-native://voice") && hub == view
                         && resumed && HOME.equals(view.getUrl()) && request.hasGesture()) {
                     startVoice(view);
@@ -669,6 +683,55 @@ public final class MainActivity extends Activity {
         if (audio != null && focus != null) audio.abandonAudioFocusRequest(focus);
     }
 
+    private void cancelInternet() {
+        internetGeneration++;
+        internetLookup.cancel();
+        AlertDialog old = internetDialog;
+        internetDialog = null;
+        if (old != null) old.dismiss();
+    }
+
+    private void internetResult(WebView view, String id, String text, String error) {
+        if (!trustedVoiceView(view)) return;
+        view.evaluateJavascript("window.ASTOR_INTERNET && window.ASTOR_INTERNET.result("
+            + JSONObject.quote(id) + "," + JSONObject.quote(text) + "," + JSONObject.quote(error) + ")", null);
+    }
+
+    private void askInternet(WebView view, Uri uri) {
+        String id = uri.getQueryParameter("id");
+        String action = uri.getQueryParameter("action");
+        if (id == null || !id.matches("[0-9]{1,12}")
+                || !("wiki".equals(action) || "browser".equals(action))) return;
+        final String query;
+        try { query = InternetPolicy.query(uri.getQueryParameter("q")); }
+        catch (IllegalArgumentException invalid) { internetResult(view, id, "", "Requête invalide."); return; }
+        cancelInternet();
+        final long generation = internetGeneration;
+        String destination = "wiki".equals(action) ? "Wikipédia" : "Google dans votre navigateur";
+        internetDialog = new AlertDialog.Builder(this).setTitle("Internet · Hybride contrôlé")
+            .setMessage("Envoyer uniquement cette recherche à " + destination + " ?\n\n" + query
+                + "\n\nLes notes et les souvenirs ne sont pas joints.")
+            .setPositiveButton("Rechercher", (d, w) -> {
+                if (generation != internetGeneration || !trustedVoiceView(view)) return;
+                internetDialog = null;
+                armIdleLock();
+                if ("browser".equals(action)) {
+                    Uri target = Uri.parse("https://www.google.com/search?q=" + InternetPolicy.encoded(query));
+                    lockHub("Session verrouillée après ouverture de la recherche Web.");
+                    try { startActivity(new Intent(Intent.ACTION_VIEW, target)); }
+                    catch (ActivityNotFoundException error) { showGate("Aucun navigateur disponible."); }
+                    return;
+                }
+                internetLookup.search(query, (text, error) -> runOnUiThread(() -> {
+                    if (generation == internetGeneration) internetResult(view, id, text, error);
+                }));
+            })
+            .setNegativeButton("Annuler", (d, w) -> internetResult(view, id, "", "Recherche annulée."))
+            .setOnCancelListener(d -> internetResult(view, id, "", "Recherche annulée."))
+            .create();
+        internetDialog.show();
+    }
+
     private void askExternal(Uri uri) {
         new AlertDialog.Builder(this).setMessage("Ouvrir ce lien dans votre navigateur ? Le Hub sera verrouillé.")
                 .setPositiveButton("Ouvrir", (d, w) -> {
@@ -687,6 +750,7 @@ public final class MainActivity extends Activity {
     }
 
     private void disposeHub() {
+        cancelInternet();
         if (localLlm != null) localLlm.cancel();
         stopVoice();
         stopIntro();
@@ -755,6 +819,7 @@ public final class MainActivity extends Activity {
         cancelAuthentication();
         disposeHub();
         if (localLlm != null) localLlm.close();
+        internetLookup.close();
         super.onDestroy();
     }
     @Override public void onBackPressed() {
