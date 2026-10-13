@@ -103,7 +103,12 @@ Java_fr_astor_hades_LocalLlm_nativeGenerate(JNIEnv * env, jclass, jstring path, 
         return bytes(env, "ERREUR_LOCAL:La demande ne peut pas être préparée.");
     perf("tokenized", nativeStart);
     auto params = llama_context_default_params();
-    params.n_ctx = 1024; params.n_batch = 32; params.n_ubatch = 32;
+    params.n_ctx = 1024;
+#ifdef ASTOR_OPT_BATCH64
+    params.n_batch = 64; params.n_ubatch = 64;
+#else
+    params.n_batch = 32; params.n_ubatch = 32;
+#endif
     params.n_threads = 4; params.n_threads_batch = 4; params.no_perf = true;
     std::unique_ptr<llama_context, decltype(&llama_free)> context(llama_init_from_model(model, params), llama_free);
     if (!context) return bytes(env, "ERREUR_LOCAL:Mémoire disponible insuffisante pour le modèle.");
@@ -124,10 +129,16 @@ Java_fr_astor_hades_LocalLlm_nativeGenerate(JNIEnv * env, jclass, jstring path, 
     llama_sampler_chain_add(sampler.get(), llama_sampler_init_dist(LLAMA_DEFAULT_SEED));
 #endif
 #endif
-    for (int i = 0; i < n; i += 32) {
+    const int prefillBatch =
+#ifdef ASTOR_OPT_BATCH64
+        64;
+#else
+        32;
+#endif
+    for (int i = 0; i < n; i += prefillBatch) {
         if (abort_decode(&abort)) return bytes(env, decode_error(2, abort, i, n));
         progress(env, listener, "Préparation de votre question : " + std::to_string(100 * i / n) + " %");
-        auto batch = llama_batch_get_one(tokens.data() + i, std::min(32, n - i));
+        auto batch = llama_batch_get_one(tokens.data() + i, std::min(prefillBatch, n - i));
         const int result = llama_decode(context.get(), batch);
         if (result) return bytes(env, decode_error(result, abort, i, n));
     }
