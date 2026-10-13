@@ -61,7 +61,7 @@ public final class MainActivity extends Activity {
     private static final String HOME = "https://appassets.androidplatform.net/assets/index.html";
     private static final int AUTH = BiometricManager.Authenticators.BIOMETRIC_STRONG;
     private static final Set<String> EXTERNAL_HOSTS = Set.of("www.youtube.com", "youtube.com",
-            "youtu.be", "open.spotify.com", "www.service-public.gouv.fr", "developer.android.com");
+            "youtu.be", "open.spotify.com", "fr.wikipedia.org", "www.service-public.gouv.fr", "developer.android.com");
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Runnable idleLock = () -> lockHub("Session verrouillée après " + idleMinutes() + " minute(s) d’inactivité.");
     private FrameLayout root;
