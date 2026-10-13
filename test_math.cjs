@@ -14,6 +14,6 @@ assert.deepEqual(result('t²-5t+6=0').solutions,['2','3']);assert.match(result('
 assert.match(result('17x19').text,/323/);assert.match(result('Peux-tu calculer 20 pour cent de 80 ?').text,/= 16$/);assert.deepEqual(result('Résous l’équation : 2y + 3 = 11').solutions,['4']);
 assert.match(result('12,50 euros + 3,20 euros').text,/15,70 €/);assert.match(result('12,50 € × 3').text,/37,50 €/);assert.match(result('TVA 20 % sur 80 €').text,/TTC : 96/);
 for(let cents=1;cents<=100;cents+=7)for(let people=2;people<=9;people++){const answer=result(`partage ${(cents/100).toFixed(2)} € en ${people}`);let total=0,count=0;for(const match of answer.text.matchAll(/(\d+) part\(s\) à (\d+),(\d{2}) €/g)){const n=Number(match[1]);count+=n;total+=n*(Number(match[2])*100+Number(match[3]));}assert.equal(count,people);assert.equal(total,cents);}
-for(const s of ['2x+y=3','t^2+y=0','12 € + 3','12 € / 3 €','250 € g en kg','remise de 15 € % sur 80 €'])assert.equal(m.handle(s).kind,'error',s);
+for(const s of ['2x+y=3','2 x 3 = 6','t^2+y=0','12 € + 3','12 € / 3 €','250 € g en kg','remise de 15 € % sur 80 €'])assert.equal(m.handle(s).kind,'error',s);
 assert.equal(m.handle('Je voudrais apprendre les fractions'),null);assert.equal(m.handle('serveur ia'),null);assert.equal(m.handle('remise de '+'1'.repeat(300)+' % sur 80').kind,'error');
 console.log('PASS: exact decimal arithmetic, precedence, daily percentages/units, generated linear/quadratic cases, domain restrictions and injection rejection');

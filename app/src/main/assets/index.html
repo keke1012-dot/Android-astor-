@@ -79,7 +79,7 @@ function plus(a,b){return a.map((v,i)=>add(v,b[i]));}
 function minus(a,b){return a.map((v,i)=>sub(v,b[i]));}
 function times(a,b){const full=Array.from({length:5},zero);for(let i=0;i<3;i++)for(let j=0;j<3;j++)full[i+j]=add(full[i+j],mul(a[i],b[j]));if(full[3].n||full[4].n)throw Error('Cette version résout les équations jusqu’au degré 2.');return full.slice(0,3);}
 function divide(a,b){if(b[1].n||b[2].n)throw Error('La division par une expression contenant x n’est pas prise en charge : son domaine doit être vérifié.');return a.map(v=>div(v,b[0]));}
-function normal(raw){return String(raw).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[×·]/g,'*').replace(/÷/g,'/').replace(/[−–]/g,'-').replace(/²/g,'^2').replace(/³/g,'^3').replace(/,/g,'.').replace(/\bfois\b/g,'*').replace(/(\d)\s+x\s+(?=\d)/g,'$1 * ').trim();}
+function normal(raw){return String(raw).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[×·]/g,'*').replace(/÷/g,'/').replace(/[−–]/g,'-').replace(/²/g,'^2').replace(/³/g,'^3').replace(/,/g,'.').replace(/\bfois\b/g,'*').trim();}
 function prepareExpression(raw){let s=normal(raw);if(!s.includes('=')&&/^[\d\s.()+*/^x%-]+$/.test(s))s=s.replace(/(\d)\s*x\s*(?=\d|\.\d)/g,'$1*');return s;}
 function parse(raw){
  const s=prepareExpression(raw);if(!s||s.length>250)throw Error('Expression vide ou trop longue (250 caractères maximum).');
