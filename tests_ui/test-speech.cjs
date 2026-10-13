@@ -1,0 +1,14 @@
+const fs=require('fs'),path=require('path'),assert=require('assert');
+const {JSDOM}=require('jsdom');
+const script=fs.readFileSync(path.join(__dirname,'../voice-native-ui.js'),'utf8').replace('location.href =','window.__nativeURL =');
+const dom=new JSDOM('<body><section><div id="chatlog"></div></section></body>',{url:'https://appassets.androidplatform.net/assets/index.html',runScripts:'outside-only'});
+const w=dom.window,$=id=>w.document.getElementById(id);w.eval(script);
+assert($('nativeSpeechTest').disabled);$('nativeSpeechInit').click();assert.equal(w.__nativeURL,'astor-native://tts-init');
+w.ASTOR_SPEECH.state('Prêt',[{name:'<img src=x onerror=alert(1)>',lang:'fr-FR'}],true,false);
+assert.equal($('nativeSpeechVoice').querySelectorAll('img').length,0);assert(!$('nativeSpeechTest').disabled);
+$('nativeSpeechTest').click();let url=new URL(w.__nativeURL);assert.equal(url.hostname,'tts-speak');assert.equal(url.searchParams.get('mode'),'metal');assert.match(url.searchParams.get('text'),/Bonsoir Kellian/);
+const reply=w.document.createElement('div');reply.className='bubble';reply.textContent='x'.repeat(900);$('chatlog').append(reply);$('nativeSpeechRead').click();url=new URL(w.__nativeURL);assert.equal(url.searchParams.get('text').length,801);
+$('nativeSpeechMute').checked=true;$('nativeSpeechMute').dispatchEvent(new w.Event('change'));assert.equal(new URL(w.__nativeURL).searchParams.get('enabled'),'1');
+w.ASTOR_SPEECH.state('Muet',[],true,true);assert($('nativeSpeechTest').disabled);
+w.document.body.classList.add('astor-locked');const before=w.__nativeURL;$('nativeSpeechInit').click();assert.equal(w.__nativeURL,before);
+dom.window.close();console.log('PASS: native French speech controls, exact text, bounded reply, mute, lock and safe voice names');

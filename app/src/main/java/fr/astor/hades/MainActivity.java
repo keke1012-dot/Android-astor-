@@ -85,6 +85,7 @@ public final class MainActivity extends Activity {
     private AlertDialog preferencesDialog;
     private Animatable gateAnimation;
     private VoiceDictation voiceDictation;
+    private AstorSpeech speech;
     private final LearningIndex learningIndex = new LearningIndex();
     private static final int MICROPHONE_REQUEST = 71;
     private static final int FILE_REQUEST = 72;
@@ -372,6 +373,35 @@ public final class MainActivity extends Activity {
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 if (!request.isForMainFrame()) return true;
                 String url = request.getUrl().toString();
+                if ("astor-native".equals(request.getUrl().getScheme()) && trustedVoiceView(view)) {
+                    String action = request.getUrl().getHost();
+                    if ("tts-stop".equals(action)) {
+                        if (speech != null) speech.stop("Lecture arrêtée.");
+                        return true;
+                    }
+                    if (request.hasGesture() && "tts-init".equals(action)) {
+                        ensureSpeech(view); return true;
+                    }
+                    if (request.hasGesture() && "tts-speak".equals(action)) {
+                        stopVoice(); stopIntro(); armIdleLock();
+                        if (ensureSpeech(view)) speech.speak(request.getUrl().getQueryParameter("text"),
+                                request.getUrl().getQueryParameter("voice"),
+                                "metal".equals(request.getUrl().getQueryParameter("mode")));
+                        return true;
+                    }
+                    if (request.hasGesture() && "tts-mute".equals(action)) {
+                        boolean muted = "1".equals(request.getUrl().getQueryParameter("enabled"));
+                        getSharedPreferences("astor-voice", MODE_PRIVATE).edit().putBoolean("muted", muted).apply();
+                        if (speech != null) speech.setMuted(muted);
+                        else publishSpeech(view, muted ? "Mode muet actif." : "Voix réactivée.", new org.json.JSONArray(), false, muted);
+                        return true;
+                    }
+                    if (request.hasGesture() && "tts-settings".equals(action)) {
+                        try { startActivity(new Intent("com.android.settings.TTS_SETTINGS")); }
+                        catch (ActivityNotFoundException error) { startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)); }
+                        return true;
+                    }
+                }
                 if (url.equals("astor-native://files-pick") && request.hasGesture() && trustedVoiceView(view)) {
                     chooseFile(view); return true;
                 }
@@ -583,6 +613,27 @@ public final class MainActivity extends Activity {
         return resumed && hub == view && view != null && HOME.equals(view.getUrl());
     }
 
+    private void publishSpeech(WebView view, String message, org.json.JSONArray voices, boolean ready, boolean muted) {
+        if (!trustedVoiceView(view)) return;
+        view.evaluateJavascript("window.ASTOR_SPEECH && window.ASTOR_SPEECH.state("
+                + JSONObject.quote(message) + "," + voices.toString() + "," + ready + "," + muted + ");", null);
+    }
+    private boolean ensureSpeech(WebView view) {
+        if (!trustedVoiceView(view)) return false;
+        if (speech != null) return true;
+        try {
+            speech = new AstorSpeech(this, (message, voices, ready, muted) -> {
+                if (trustedVoiceView(view)) publishSpeech(view, message, voices, ready, muted);
+            });
+            publishSpeech(view, "Initialisation du moteur vocal Android…", new org.json.JSONArray(), false,
+                    getSharedPreferences("astor-voice", MODE_PRIVATE).getBoolean("muted", false));
+        } catch (RuntimeException error) {
+            publishSpeech(view, "Moteur vocal indisponible. Ouvrez Paramètres voix.", new org.json.JSONArray(), false, false);
+        }
+        return false;
+    }
+    private void closeSpeech() { if (speech != null) { speech.close(); speech = null; } }
+
     private void voiceState(WebView view, boolean listening, String message) {
         if (!trustedVoiceView(view)) return;
         view.evaluateJavascript("window.astorVoice && window.astorVoice.state("
@@ -597,6 +648,7 @@ public final class MainActivity extends Activity {
 
     private void startVoice(WebView view) {
         if (!trustedVoiceView(view)) return;
+        if (speech != null) speech.stop("Lecture arrêtée pour la dictée.");
         if (voiceDictation != null) {
             stopVoice();
             voiceState(view, false, "Dictée annulée. Le clavier reste disponible.");
@@ -898,6 +950,7 @@ public final class MainActivity extends Activity {
     }
 
     private void disposeHub() {
+        closeSpeech();
         ++fileGeneration;
         cancelInternet();
         if (localLlm != null) localLlm.cancel();
