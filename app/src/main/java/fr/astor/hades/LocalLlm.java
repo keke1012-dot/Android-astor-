@@ -48,7 +48,6 @@ public final class LocalLlm {
     }
     public boolean ready() { return AVAILABLE && installed(); }
     public void generate(String prompt, Listener listener) {
-        final long requestNs = System.nanoTime();
         if (closed || !AVAILABLE) { listener.done("", "Moteur local incompatible avec cet appareil."); return; }
         if (!ready()) { listener.done("", "Téléchargez d’abord le modèle local depuis Accueil."); return; }
         if (prompt.length() > 14000) { listener.done("", "Demande trop longue."); return; }
@@ -56,14 +55,10 @@ public final class LocalLlm {
         long generation = epoch.get(), nativeGeneration = nativeRevision();
         File selected = selectedModel();
         worker.execute(() -> {
-            final long workerNs = System.nanoTime();
-            // Queue timing retained for diagnostic listeners without Android-only dependencies.
             try {
                 if (generation != epoch.get()) return;
                 listener.state("Chargement du modèle et préparation de la question…", -1);
-                final long nativeStartNs = System.nanoTime();
                 byte[] result = nativeGenerate(selected.getAbsolutePath(), prompt.getBytes(StandardCharsets.UTF_8), nativeGeneration, listener);
-                // Native duration available to a future diagnostic callback.
                 if (generation != epoch.get()) return;
                 String answer = new String(result, StandardCharsets.UTF_8);
                 if (answer.startsWith("ERREUR_LOCAL:")) listener.done("", answer.substring(13));
