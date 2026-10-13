@@ -66,12 +66,15 @@ public final class AstorSpeech {
         if (closed) return;
         if (status != TextToSpeech.SUCCESS) { publish("Moteur vocal Android indisponible. Vérifiez les paramètres voix."); return; }
         try {
+            voices.clear();
             Set<Voice> available = tts.getVoices();
             if (available != null) for (Voice voice : available) {
                 if ("fr".equals(voice.getLocale().getLanguage()) && !voice.isNetworkConnectionRequired()
                         && !voice.getFeatures().contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED)) voices.add(voice);
             }
-            voices.sort(Comparator.comparing((Voice v) -> !"FR".equals(v.getLocale().getCountry()))
+            voices.sort(Comparator.comparing((Voice v) -> !v.getName().equals(prefs.getString("selectedVoice", "")))
+                    .thenComparing(v -> !VoicePreferencePolicy.masculineName(v.getName()))
+                    .thenComparing(v -> !"FR".equals(v.getLocale().getCountry()))
                     .thenComparing(Voice::getName));
             if (voices.isEmpty()) { publish("Aucune voix française hors ligne installée. Ouvrez Paramètres voix pour télécharger Français."); return; }
             tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
@@ -83,6 +86,12 @@ public final class AstorSpeech {
             ready = true;
             publish("Voix française locale prête. Touchez Tester la voix.");
         } catch (RuntimeException error) { publish("Le moteur vocal ne fournit pas ses voix. Vérifiez les paramètres Android."); }
+    }
+    public void selectVoice(String name, String profile) {
+        if (closed) return;
+        if (voices.stream().noneMatch(v -> v.getName().equals(name))) { publish("Détectez les voix avant de choisir."); return; }
+        prefs.edit().putString("selectedVoice", name).putString("profile", VoicePreferencePolicy.profile(profile)).apply();
+        publish("Voix choisie enregistrée pour les prochaines réponses.");
     }
     public void refresh() {
         if (closed) return;
@@ -100,17 +109,18 @@ public final class AstorSpeech {
         callback.state(message, names, ready, muted);
     }
     public void speak(String text, String voiceName, String requestedProfile) {
-        String profile = "metal".equals(requestedProfile) ? "metal" : "grave".equals(requestedProfile) ? "grave" : "jarvis";
+        String profile = VoicePreferencePolicy.profile(requestedProfile);
         if (closed) return;
         if (!ready) { publish("Le moteur vocal se prépare. Réessayez dans un instant."); return; }
         if (muted) { publish("Mode muet actif."); return; }
         if (text == null || text.trim().isEmpty() || text.length() > 1200) { publish("Choisissez un texte court, de 1 à 1 200 caractères."); return; }
         Voice selected = voices.stream().filter(v -> v.getName().equals(voiceName)).findFirst().orElse(voices.get(0));
+        prefs.edit().putString("selectedVoice", selected.getName()).putString("profile", profile).apply();
         stop(null);
         try {
             if (tts.setVoice(selected) != TextToSpeech.SUCCESS) { publish("Cette voix n’est pas prête. Choisissez-en une autre."); return; }
             tts.setSpeechRate("grave".equals(profile) ? 0.88f : 0.96f);
-            tts.setPitch("jarvis".equals(profile) ? 0.88f : "metal".equals(profile) ? 0.9f : 0.75f);
+            tts.setPitch("jarvis".equals(profile) ? 0.74f : "metal".equals(profile) ? 0.9f : 0.75f);
             String id = "voice-" + (++sequence) + "-" + java.util.UUID.randomUUID();
             Job job = new Job(id, directory, profile); current = job;
             job.watchdog = () -> failed(id, "Lecture arrêtée après le délai maximal.");

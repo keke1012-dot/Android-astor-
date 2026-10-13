@@ -358,8 +358,6 @@ public final class MainActivity extends Activity {
                     publishLocalModelState(view);
                     readSelectedFile(view);
                     ensureSpeech(view);
-                    publishSpeech(view, "Touchez Détecter pour activer la voix Android locale.", new org.json.JSONArray(), false,
-                            getSharedPreferences("astor-voice", MODE_PRIVATE).getBoolean("muted", false));
                 }
             }
             @Override public void onReceivedError(WebView view, WebResourceRequest request, android.webkit.WebResourceError error) {
@@ -380,6 +378,16 @@ public final class MainActivity extends Activity {
                 String url = request.getUrl().toString();
                 if ("astor-native".equals(request.getUrl().getScheme()) && trustedVoiceView(view)) {
                     String action = request.getUrl().getHost();
+                    if (request.hasGesture() && "tts-choice".equals(action)) {
+                        if (ensureSpeech(view)) speech.selectVoice(request.getUrl().getQueryParameter("voice"), request.getUrl().getQueryParameter("mode"));
+                        return true;
+                    }
+                    if (request.hasGesture() && "tts-auto".equals(action)) {
+                        boolean enabled = "1".equals(request.getUrl().getQueryParameter("enabled"));
+                        getSharedPreferences("astor-voice", MODE_PRIVATE).edit().putBoolean("autoReplies", enabled).apply();
+                        if (speech != null) { if (!enabled) speech.stop(null); speech.refresh(); }
+                        return true;
+                    }
                     if ("tts-stop".equals(action)) {
                         if (speech != null) speech.stop("Lecture arrêtée.");
                         return true;
@@ -556,6 +564,18 @@ public final class MainActivity extends Activity {
                 }
             });
         }
+        @android.webkit.JavascriptInterface public void speakReply(String text) {
+            if (text == null || text.trim().isEmpty() || text.length() > 800) return;
+            runOnUiThread(() -> {
+                if (!trustedVoiceView(view) || voiceDictation != null) return;
+                android.content.SharedPreferences voicePrefs = getSharedPreferences("astor-voice", MODE_PRIVATE);
+                if (!voicePrefs.getBoolean("autoReplies", true) || voicePrefs.getBoolean("muted", false)) return;
+                if (ensureSpeech(view)) {
+                    stopIntro(); armIdleLock();
+                    speech.speak(text, voicePrefs.getString("selectedVoice", ""), voicePrefs.getString("profile", "jarvis"));
+                }
+            });
+        }
         @android.webkit.JavascriptInterface public void cognitive(String id, String prompt) {
             if (id == null || !id.matches("[0-9]{1,12}") || prompt == null || prompt.length() > 2200) return;
             runOnUiThread(() -> {
@@ -635,7 +655,10 @@ public final class MainActivity extends Activity {
     private void publishSpeech(WebView view, String message, org.json.JSONArray voices, boolean ready, boolean muted) {
         if (!trustedVoiceView(view)) return;
         view.evaluateJavascript("window.ASTOR_SPEECH && window.ASTOR_SPEECH.state("
-                + JSONObject.quote(message) + "," + voices.toString() + "," + ready + "," + muted + ");", null);
+                + JSONObject.quote(message) + "," + voices.toString() + "," + ready + "," + muted + ","
+                + getSharedPreferences("astor-voice", MODE_PRIVATE).getBoolean("autoReplies", true) + ","
+                + JSONObject.quote(getSharedPreferences("astor-voice", MODE_PRIVATE).getString("selectedVoice", "")) + ","
+                + JSONObject.quote(getSharedPreferences("astor-voice", MODE_PRIVATE).getString("profile", "jarvis")) + ");", null);
     }
     private boolean ensureSpeech(WebView view) {
         if (!trustedVoiceView(view)) return false;

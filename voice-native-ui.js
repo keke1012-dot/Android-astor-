@@ -11,12 +11,13 @@
     + '<div class="toolbar"><button type="button" id="nativeSpeechInit">Détecter les voix</button>'
     + '<button type="button" id="nativeSpeechSettings">Paramètres voix</button></div>'
     + '<label for="nativeSpeechVoice">Voix française installée</label><select id="nativeSpeechVoice" aria-label="Voix française"><option value="">Détection nécessaire</option></select>'
-    + '<label for="nativeSpeechMode">Profil</label><select id="nativeSpeechMode"><option value="jarvis">Assistant · inspiré de JARVIS</option><option value="metal">Métallique · science-fiction</option><option value="grave">Grave · sans modulation</option></select>'
+    + '<label for="nativeSpeechMode">Profil</label><select id="nativeSpeechMode"><option value="jarvis">Assistant grave · inspiré de JARVIS</option><option value="metal">Métallique · science-fiction</option><option value="grave">Grave · sans modulation</option></select>'
     + '<div class="toolbar"><button type="button" id="nativeSpeechTest" disabled>Tester la voix</button>'
     + '<button type="button" id="nativeSpeechRead" disabled>Lire la dernière réponse</button>'
     + '<button type="button" id="nativeSpeechStop">Arrêter</button></div>'
+    + '<label class="hint"><input type="checkbox" id="nativeSpeechAuto" checked> Lire les nouvelles réponses automatiquement</label>'
     + '<label class="hint"><input type="checkbox" id="nativeSpeechMute"> Mode muet</label>'
-    + '<p class="hint">Lecture du début de la réponse, jusqu’à 800 caractères. Le timbre dépend de la voix choisie.</p>'
+    + '<p class="hint">Lecture du début de la réponse, jusqu’à 800 caractères. Écoutez les voix puis choisissez le timbre masculin qui vous convient. Votre choix est mémorisé.</p>'
     + '<p id="nativeSpeechStatus" class="statusline" role="status" aria-live="polite">Préparation de la voix française locale. Si nécessaire, touchez Détecter les voix.</p>';
   chat.before(panel);
   const nav = (action, args = {}) => {
@@ -40,6 +41,25 @@
   $('nativeSpeechInit').onclick = () => nav('tts-init');
   $('nativeSpeechSettings').onclick = () => nav('tts-settings');
   $('nativeSpeechMode').value = 'jarvis';
+  let readyForVoice = false, voiceMuted = false, pendingReply = null, pendingTimer = null;
+  const clearPending = () => { pendingReply = null; clearTimeout(pendingTimer); pendingTimer = null; };
+  const flushReply = () => {
+    if (!readyForVoice || !pendingReply) return;
+    const text = pendingReply; clearPending();
+    if (voiceMuted || !$('nativeSpeechAuto').checked || document.body.classList.contains('astor-locked')) return;
+    window.AstorLocalNative?.speakReply?.(text);
+  };
+  window.addEventListener('astor-reply-ready', event => {
+    clearPending();
+    if (voiceMuted || !$('nativeSpeechAuto').checked || document.body.classList.contains('astor-locked')) return;
+    if (typeof event.detail?.text !== 'string') return;
+    pendingReply = event.detail.text.trim().slice(0,800);
+    if (!pendingReply) return;
+    pendingTimer = setTimeout(clearPending, 10000); flushReply();
+  });
+  const saveChoice = () => nav('tts-choice', {voice:$('nativeSpeechVoice').value, mode:$('nativeSpeechMode').value});
+  $('nativeSpeechVoice').onchange = saveChoice; $('nativeSpeechMode').onchange = saveChoice;
+  $('nativeSpeechAuto').onchange = () => { clearPending(); nav('tts-auto', {enabled:$('nativeSpeechAuto').checked ? '1' : '0'}); };
   const speak = text => nav('tts-speak', {text, voice:$('nativeSpeechVoice').value, mode:$('nativeSpeechMode').value});
   $('nativeSpeechTest').onclick = () => speak('Bonsoir Kellian. Je suis Astor. Tous les systèmes sont prêts. Je suis à votre écoute.');
   $('nativeSpeechRead').onclick = () => {
@@ -48,12 +68,12 @@
     if (!text) { $('nativeSpeechStatus').textContent = 'Aucune réponse à lire pour le moment.'; return; }
     speak(text.length > 800 ? text.slice(0, 800) + '…' : text);
   };
-  $('nativeSpeechStop').onclick = () => nav('tts-stop');
-  $('nativeSpeechMute').onchange = () => nav('tts-mute', {enabled:$('nativeSpeechMute').checked ? '1' : '0'});
-  window.ASTOR_SPEECH = Object.freeze({state(message, voices, ready, muted) {
+  $('nativeSpeechStop').onclick = () => { clearPending(); nav('tts-stop'); };
+  $('nativeSpeechMute').onchange = () => { voiceMuted = $('nativeSpeechMute').checked; clearPending(); nav('tts-mute', {enabled:voiceMuted ? '1' : '0'}); };
+  window.ASTOR_SPEECH = Object.freeze({state(message, voices, ready, muted, auto = true, preferredVoice = "", profile = "jarvis") {
     if (document.body.classList.contains('astor-locked')) return;
     $('nativeSpeechStatus').textContent = String(message || 'État vocal indisponible.');
-    const select = $('nativeSpeechVoice'), previous = select.value;
+    const select = $('nativeSpeechVoice'), previous = preferredVoice || select.value;
     select.replaceChildren();
     if (Array.isArray(voices)) for (const v of voices) {
       if (typeof v.name !== 'string' || typeof v.lang !== 'string') continue;
@@ -61,11 +81,18 @@
       select.append(option);
     }
     if ([...select.options].some(o => o.value === previous)) select.value = previous;
-    $('nativeSpeechMute').checked = muted === true;
+    voiceMuted = muted === true; readyForVoice = ready === true;
+    $('nativeSpeechMute').checked = voiceMuted;
+    $('nativeSpeechAuto').checked = auto === true;
+    if (['jarvis','metal','grave'].includes(profile)) $('nativeSpeechMode').value = profile;
+    if (voiceMuted || auto !== true) clearPending();
     $('nativeSpeechTest').disabled = ready !== true || muted === true;
     $('nativeSpeechRead').disabled = ready !== true || muted === true;
+    flushReply();
   }});
+  window.addEventListener('pagehide', clearPending);
   window.addEventListener('astor-lock-request', () => {
+    clearPending(); readyForVoice = false;
     $('nativeSpeechTest').disabled = true; $('nativeSpeechRead').disabled = true;
   });
 })();
