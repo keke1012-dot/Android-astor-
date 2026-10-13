@@ -25,17 +25,28 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      # Use the runner's installed SDK tools; avoid setup-android's interactive license step.
-      - name: Accept Android SDK licenses
+      - name: Locate Android SDK manager
         shell: bash
         run: |
           set -euo pipefail
           SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
-          export ANDROID_SDK_ROOT="$SDK_ROOT"
-          export ANDROID_HOME="$SDK_ROOT"
-          mkdir -p "$SDK_ROOT/licenses"
+          SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMANAGER" ]; then
+            SDKMANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager -perm /111 2>/dev/null | head -n 1)"
+          fi
+          if [ -z "$SDKMANAGER" ] || [ ! -x "$SDKMANAGER" ]; then
+            echo "::error::Android sdkmanager unavailable on runner"
+            exit 1
+          fi
+          echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "SDKMANAGER=$SDKMANAGER" >> "$GITHUB_ENV"
+      - name: Accept Android SDK licenses
+        shell: bash
+        run: |
+          set -euo pipefail
           set +o pipefail
-          yes | sdkmanager --licenses > /tmp/astor-sdk-licenses.log 2>&1
+          yes | "$SDKMANAGER" --sdk_root="$ANDROID_SDK_ROOT" --licenses > /tmp/astor-sdk-licenses.log 2>&1
           result=${PIPESTATUS[1]}
           set -o pipefail
           if [ "$result" -ne 0 ]; then
@@ -46,7 +57,7 @@ jobs:
         with:
           gradle-version: '8.9'
       - name: Install Android toolchain
-        run: sdkmanager --licenses >/dev/null < /dev/null && sdkmanager "platforms;android-35" "build-tools;35.0.0" "ndk;27.2.12479018" "cmake;3.22.1"
+        run: '"$SDKMANAGER" --sdk_root="$ANDROID_SDK_ROOT" "platforms;android-35" "build-tools;35.0.0" "ndk;27.2.12479018" "cmake;3.22.1"'
       - name: Run JavaScript regression tests
         run: |
           node test_web.cjs
