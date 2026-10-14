@@ -11,7 +11,19 @@ function evaluate(input) {
     ? input.assumptions.slice(0,8).filter(x=>typeof x==='string').map(x=>x.trim().slice(0,240)).filter(Boolean)
     : [];
   const context = String(input.context || '').slice(0,2000);
-  const sensitive = /\b(delete|erase|remove|wipe|supprimer|effacer|désinstaller|installer|publish|publier|payer|purchase|acheter|permission|autorisation|accès|access|fichier|file|secret|clé api|api key|token|internet|network|réseau)\b/i.test(decision+' '+context);
+  // Defense in depth: this flag is advisory only. Actual permissions MUST be
+  // enforced by HADES at the Android/native action boundary, never by text matching.
+  const normalized = (decision+' '+context).normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const patterns = [
+    /\b(supprim\w*|effac\w*|desinstall\w*|detru\w*|delete\w*|eras\w*|remov\w*|wip\w*)\b/,
+    /\b(desactiv\w*|disabled?\w*|turn off|bypass\w*|contourn\w*)\b/,
+    /\b(install\w*|publi\w*|publish\w*|pay\w*|payer|achet\w*|purchas\w*)\b/,
+    /\b(permission\w*|autoris\w*|acces|access|fichier\w*|file\w*|secret\w*|token\w*|internet|network|reseau|cle api|api key)\b/,
+    /\b(envoi\w*|transf\w*|partag\w*|upload\w*|export\w*)\b/
+  ];
+  const sensitive = patterns.some(re=>re.test(normalized));
+
   return {
     version:'tempest-strategic-v1',
     mode, decision, assumptions,
