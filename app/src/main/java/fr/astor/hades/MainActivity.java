@@ -443,6 +443,15 @@ public final class MainActivity extends Activity {
                     voiceState(view, false, "Dictée annulée. Le clavier reste disponible.");
                     return true;
                 }
+                if (url.equals("astor-native://hades-dial112") && hub == view
+                        && resumed && HOME.equals(view.getUrl()) && request.hasGesture()) {
+                    lockHub("Session verrouillée avant ouverture du composeur d’urgence.");
+                    try { startActivity(new Intent(Intent.ACTION_DIAL, Uri.parse("tel:112"))); }
+                    catch (ActivityNotFoundException error) {
+                        showGate("Composeur indisponible. En cas d’urgence, composez le 112 depuis Téléphone.");
+                    }
+                    return true;
+                }
                 if (url.equals("astor-native://settings") && hub == view
                         && resumed && HOME.equals(view.getUrl())) {
                     showPreferences();
