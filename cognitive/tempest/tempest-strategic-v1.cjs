@@ -23,7 +23,7 @@ function evaluate(input) {
     /\b(envoi\w*|transf\w*|partag\w*|upload\w*|export\w*)\b/
   ];
   // Explicit high-impact phrases that must never silently bypass confirmation.
-  patterns.push(/\\b(vid\\w*|purge\\w*|transmet\\w*|transmi\\w*|coffre|mot de passe|password|identifiant\\w*)\\b/);
+  patterns.push(/\b(vid\w*|purge\w*|transmet\w*|transmi\w*|coffre|mot de passe|password|identifiant\w*)\b/);
   const sensitive = patterns.some(re=>re.test(normalized));
 
   return {
