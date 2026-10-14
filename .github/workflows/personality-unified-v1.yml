@@ -1,0 +1,109 @@
+name: ASTOR Personality V1 - unified update
+on:
+  push:
+    branches:
+      - feature/astor-personnalite-unifiee-v1
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  policy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Test time, DST and break policy
+        run: |
+          mkdir -p /tmp/morphee-test
+          javac -encoding UTF-8 -d /tmp/morphee-test app/src/main/java/fr/astor/hades/MorpheePolicy.java tests_native/fr/astor/hades/MorpheePolicyTest.java
+          java -cp /tmp/morphee-test fr.astor.hades.MorpheePolicyTest
+          javac -encoding UTF-8 -cp /tmp/morphee-test -d /tmp/morphee-test app/src/main/java/fr/astor/hades/PhoneAccessPolicy.java tests_native/fr/astor/hades/PhoneAccessPolicyTest.java
+          java -cp /tmp/morphee-test fr.astor.hades.PhoneAccessPolicyTest
+  android:
+    needs: policy
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: ggml-org/llama.cpp
+          ref: 4762ad7316dcdec20016ab5985fb46a27902204d
+          path: third_party/llama.cpp
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Locate Android SDK manager
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
+          SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMANAGER" ]; then
+            SDKMANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager -perm /111 2>/dev/null | head -n 1)"
+          fi
+          test -n "$SDKMANAGER"
+          echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "SDKMANAGER=$SDKMANAGER" >> "$GITHUB_ENV"
+      - name: Android licenses
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +o pipefail
+          yes | "$SDKMANAGER" --sdk_root="$ANDROID_SDK_ROOT" --licenses > /tmp/astor-sdk-licenses.log 2>&1
+          result=${PIPESTATUS[1]}
+          set -o pipefail
+          if [ "$result" -ne 0 ]; then tail -n 50 /tmp/astor-sdk-licenses.log; exit "$result"; fi
+      - name: Install Android toolchain
+        run: '"$SDKMANAGER" --sdk_root="$ANDROID_SDK_ROOT" "platforms;android-35" "build-tools;35.0.0" "ndk;27.2.12479018" "cmake;3.22.1"'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Unified functional regressions
+        run: |
+          node tests_v025/guardrails.cjs
+          node test_web.cjs
+          node test_personality.cjs
+          node test_hades.cjs
+          node test_module_language.cjs
+          node test_phone_access_n2.cjs
+          node test_vault_security.cjs
+          node test_mnemosyne.cjs
+          node test_durable_memory.cjs
+          node test_backup_transfer.cjs
+          node test_local_ai.cjs
+          node test_internet.cjs
+          node test_math.cjs
+      - name: Compile and lint unified update after regressions
+        run: gradle --no-daemon :app:assembleRelease :app:lintRelease -PastorUnifiedCandidate
+      - name: Verify unsigned unified candidate
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/release/app-release-unsigned.apk dist/Astor-0.2.9.21-Unifiee-Personnalite-UNSIGNED.apk
+          cp "$ANDROID_HOME/build-tools/35.0.0/lib/apksigner.jar" dist/apksigner.jar
+          "$ANDROID_HOME/build-tools/35.0.0/zipalign" -c -P 16 4 dist/Astor-0.2.9.21-Unifiee-Personnalite-UNSIGNED.apk
+          "$JAVA_HOME/bin/jlink" --add-modules java.base,java.logging,jdk.crypto.ec,jdk.crypto.cryptoki --strip-debug --no-header-files --no-man-pages --compress=2 --output "$RUNNER_TEMP/astor-signing-runtime"
+          tar -czf dist/signing-runtime.tar.gz -C "$RUNNER_TEMP" astor-signing-runtime
+          python3 - <<'PYVERIFY'
+          import runpy
+          m=runpy.run_path('scripts/verify_unified_update.py')['manifest_metadata']('dist/Astor-0.2.9.21-Unifiee-Personnalite-UNSIGNED.apk')
+          assert m['package']=='fr.astor.hades.unified.test.unified029'
+          assert m['versionCode']==49
+          assert m['debuggable'] is False and m['allowBackup'] is False and m['cleartext'] is False
+          print('PASS unified package and privacy flags')
+          PYVERIFY
+          cd dist
+          sha256sum *.apk > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ASTOR-Personnalite-Unifiee-Unsigned
+          path: dist/
+          if-no-files-found: error
