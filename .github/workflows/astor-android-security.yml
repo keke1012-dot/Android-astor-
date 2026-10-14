@@ -1,0 +1,17 @@
+name: ASTOR Android Security Source Checks
+on:
+  push:
+    branches: [feature/astor-cognitive-v2]
+  workflow_dispatch:
+jobs:
+  source-security:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node cognitive/tempest/test-tempest.cjs
+      - run: node cognitive/tempest/test-android-security.cjs
