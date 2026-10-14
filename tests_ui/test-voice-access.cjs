@@ -1,0 +1,14 @@
+const fs=require('fs'),path=require('path'),assert=require('assert');
+const {JSDOM}=require('jsdom');
+const script=fs.readFileSync(path.join(__dirname,'../voice-native-ui.js'),'utf8').replace('location.href =','window.__nativeURL =');
+const dom=new JSDOM('<body><section><div id="androidQuickActions"></div><div id="chatlog"></div></section></body>',{url:'https://appassets.androidplatform.net/assets/index.html',runScripts:'outside-only'});
+const w=dom.window,$=id=>w.document.getElementById(id);w.eval(script);
+assert.equal($('voiceQuickAccess').textContent,'Voix ASTOR');assert(!$('nativeSpeechPanel').open);
+$('voiceQuickAccess').click();assert($('nativeSpeechPanel').open);assert.equal(w.document.activeElement.id,'nativeSpeechInit');
+assert.equal($('nativeSpeechPanel').style.maxHeight,'');assert.equal($('nativeSpeechPanel').style.overflow,'');
+assert.equal($('nativeSpeechMode').value,'jarvis');assert(!$('elevenConfigure'));assert.equal(w.ASTOR_ELEVEN,undefined);
+$('nativeSpeechStop').click();assert.equal(w.__nativeURL,'astor-native://tts-stop');
+assert(!/ElevenLabs|eleven-speak|api-key|fetch\(/i.test(script));
+assert(!fs.existsSync(path.join(__dirname,'../app/src/main/java/fr/astor/hades/ElevenSpeech.java')));
+assert(!fs.existsSync(path.join(__dirname,'../app/src/main/java/fr/astor/hades/ElevenCredentials.java')));
+dom.window.close();console.log('PASS: visible local voice shortcut, assistant default, no provider controls and no nested clipping');

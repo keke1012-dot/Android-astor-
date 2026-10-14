@@ -14,17 +14,19 @@ if (astorSigningPath) {
 
 android {
     namespace 'fr.astor.hades'
+    buildFeatures { buildConfig true }
     compileSdk 35
     ndkVersion '27.2.12479018'
     externalNativeBuild { cmake { path file('src/main/cpp/CMakeLists.txt'); version '3.22.1' } }
     defaultConfig {
-        applicationId 'fr.astor.hades.prototype'
+        // Installed unified identity is immutable, including its historical suffix.
+        applicationId 'fr.astor.hades.unified.test.unified029'
         minSdk 30
         targetSdk 35
         ndk { abiFilters 'arm64-v8a' }
-        externalNativeBuild { cmake { cppFlags '-std=c++17 -O3'; arguments '-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON' } }
-        versionCode 21
-        versionName '0.2.4-ia-locale'
+        externalNativeBuild { cmake { cppFlags '-std=c++17 -O3'; arguments '-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON', '-DASTOR_OPT_BATCH64=ON' } }
+        versionCode 45
+        versionName '0.2.9.17-voice-ui'
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -42,12 +44,13 @@ android {
     }
     buildTypes {
         debug {
-            applicationIdSuffix project.hasProperty('astorMemoryTest') ? '.test.mnemosyne' : (project.hasProperty('astorSeparateTest') ? '.test.tempest' : '.test')
+            debuggable false
+            applicationIdSuffix project.hasProperty('astorUnifiedTest') ? '.test.morphee02913' : project.hasProperty('astorFilesTest') ? '.test.files028' : project.hasProperty('astorInternetTest') ? '.test.internet0271' : project.hasProperty('astorGlobalTest') ? '.test.global025rc2' : project.hasProperty('astorMemoryTest') ? '.test.mnemosyne' : (project.hasProperty('astorSeparateTest') ? '.test.tempest' : '.test')
             versionNameSuffix '-test'
-            manifestPlaceholders = [astorAppLabel: project.hasProperty('astorMemoryTest') ? 'Astor Mémoire' : (project.hasProperty('astorSeparateTest') ? 'Astor Tempest' : 'Astor Test')]
+            manifestPlaceholders = [astorAppLabel: project.hasProperty('astorUnifiedTest') ? 'Astor Morphée 0.2.9.13' : project.hasProperty('astorFilesTest') ? 'Astor Fichiers 0.2.8' : project.hasProperty('astorInternetTest') ? 'Astor Internet 0.2.7.1' : project.hasProperty('astorGlobalTest') ? 'Astor 0.2.5 RC2' : project.hasProperty('astorMemoryTest') ? 'Astor Mémoire' : (project.hasProperty('astorSeparateTest') ? 'Astor Tempest' : 'Astor Test')]
         }
         release {
-            manifestPlaceholders = [astorAppLabel: 'Astor']
+            manifestPlaceholders = [astorAppLabel: 'Astor Unifiée']
             minifyEnabled false
             debuggable false
             signingConfig astorSigning.isEmpty() ? null : signingConfigs.prototype
@@ -55,3 +58,4 @@ android {
     }
 }
 dependencies { implementation 'androidx.webkit:webkit:1.12.1' }
+

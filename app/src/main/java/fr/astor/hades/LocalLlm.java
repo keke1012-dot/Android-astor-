@@ -31,9 +31,27 @@ public final class LocalLlm {
     private volatile boolean useLight;
     private volatile HttpsURLConnection transfer;
     private volatile boolean closed;
-    public interface Listener { void state(String message, int percent); void done(String reply, String error); }
-    public LocalLlm(File storage) { directory = new File(storage, "local-model"); model = new File(directory, "qwen3-0.6b-q8.gguf"); upgrade = new File(directory, "qwen3-1.7b-q4km.gguf"); }
-    public boolean available() { return AVAILABLE; }
+    public interface Listener {
+        void state(String message, int percent);
+        void done(String reply, String error);
+        default void timing(long queueMs, long nativeMs) { }
+    }
+    interface Engine {
+        boolean available(); long revision();
+        byte[] generate(String path, byte[] prompt, long revision, Listener listener);
+        void cancel(); void release();
+    }
+    private static final Engine NATIVE = new Engine() {
+        public boolean available() { return AVAILABLE; }
+        public long revision() { return nativeRevision(); }
+        public byte[] generate(String path, byte[] prompt, long revision, Listener listener) { return nativeGenerate(path, prompt, revision, listener); }
+        public void cancel() { nativeCancel(); }
+        public void release() { nativeRelease(); }
+    };
+    private final Engine engine;
+    public LocalLlm(File storage) { this(storage, NATIVE); }
+    LocalLlm(File storage, Engine engine) { this.engine = engine; directory = new File(storage, "local-model"); model = new File(directory, "qwen3-0.6b-q8.gguf"); upgrade = new File(directory, "qwen3-1.7b-q4km.gguf"); }
+    public boolean available() { return engine.available(); }
     public boolean lightInstalled() { return model.isFile() && model.length() == MODEL_SIZE; }
     public boolean upgradeInstalled() { return upgrade.isFile() && upgrade.length() == UPGRADE_SIZE; }
     private File selectedModel() { return !useLight && upgradeInstalled() ? upgrade : model; }
@@ -46,25 +64,41 @@ public final class LocalLlm {
         useLight = light;
         return true;
     }
-    public boolean ready() { return AVAILABLE && installed(); }
+    public boolean ready() { return engine.available() && installed(); }
     public void generate(String prompt, Listener listener) {
-        if (closed || !AVAILABLE) { listener.done("", "Moteur local incompatible avec cet appareil."); return; }
+        if (closed || !engine.available()) { listener.done("", "Moteur local incompatible avec cet appareil."); return; }
         if (!ready()) { listener.done("", "Téléchargez d’abord le modèle local depuis Accueil."); return; }
         if (prompt.length() > 14000) { listener.done("", "Demande trop longue."); return; }
         if (!busy.compareAndSet(false, true)) { listener.done("", "Une opération locale est déjà en cours."); return; }
-        long generation = epoch.get(), nativeGeneration = nativeRevision();
+        long generation = epoch.get(), nativeGeneration = engine.revision();
+        final long submittedAt = System.nanoTime();
         File selected = selectedModel();
         worker.execute(() -> {
+            String answer = "", error = "";
+            final long startedAt = System.nanoTime();
+            long nativeMs = -1;
+            boolean completed = false;
             try {
-                if (generation != epoch.get()) return;
+                if (!current(generation)) return;
                 listener.state("Chargement du modèle et préparation de la question…", -1);
-                byte[] result = nativeGenerate(selected.getAbsolutePath(), prompt.getBytes(StandardCharsets.UTF_8), nativeGeneration, listener);
-                if (generation != epoch.get()) return;
-                String answer = new String(result, StandardCharsets.UTF_8);
-                if (answer.startsWith("ERREUR_LOCAL:")) listener.done("", answer.substring(13));
-                else listener.done(answer, "");
-            } catch (Throwable e) { if (generation == epoch.get()) listener.done("", "Le calcul local a échoué. Réessayez après avoir fermé d’autres applications."); }
-            finally { busy.set(false); }
+                final long nativeStartedAt = System.nanoTime();
+                byte[] result = engine.generate(selected.getAbsolutePath(), prompt.getBytes(StandardCharsets.UTF_8), nativeGeneration, listener);
+                nativeMs = (System.nanoTime() - nativeStartedAt) / 1_000_000L;
+                if (!current(generation)) return;
+                answer = new String(result, StandardCharsets.UTF_8);
+                if (answer.startsWith("ERREUR_LOCAL:")) { error = answer.substring(13); answer = ""; }
+                completed = true;
+            } catch (Throwable e) {
+                error = "Le calcul local a échoué. Réessayez après avoir fermé d’autres applications.";
+                completed = current(generation);
+            } finally {
+                // Release BEFORE callbacks: CognitiveEngine can enqueue the next pass safely.
+                busy.set(false);
+            }
+            if (completed && current(generation)) {
+                try { listener.timing((startedAt - submittedAt) / 1_000_000L, nativeMs); } catch (RuntimeException ignored) { }
+                if (current(generation)) listener.done(answer, error);
+            }
         });
     }
     private boolean current(long generation) { return !closed && generation == epoch.get(); }
@@ -74,7 +108,7 @@ public final class LocalLlm {
                 && (host.equals("huggingface.co") || host.endsWith(".huggingface.co") || host.endsWith(".hf.co"));
     }
     public void download(Listener listener) {
-        if (closed || !AVAILABLE) { listener.done("", "Moteur local incompatible avec cet appareil."); return; }
+        if (closed || !engine.available()) { listener.done("", "Moteur local incompatible avec cet appareil."); return; }
         if (upgradeInstalled()) { listener.done("Modèle amélioré déjà installé. Aucun téléchargement nécessaire.", ""); return; }
         if (!busy.compareAndSet(false, true)) { listener.done("", "Une opération locale est déjà en cours."); return; }
         long generation = epoch.get();
@@ -122,8 +156,8 @@ public final class LocalLlm {
     }
     public void cancel() {
         epoch.incrementAndGet(); if (transfer != null) transfer.disconnect();
-        if (AVAILABLE) nativeCancel();
-        if (!closed && AVAILABLE) worker.execute(LocalLlm::nativeRelease);
+        if (engine.available()) engine.cancel();
+        if (!closed && engine.available()) worker.execute(engine::release);
     }
     public void close() { cancel(); closed = true; worker.shutdown(); }
     private static native byte[] nativeGenerate(String path, byte[] prompt, long revision, Listener progress);
