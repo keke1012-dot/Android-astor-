@@ -38,4 +38,7 @@ const extraSensitive=[
   'Exporte les données privées'
 ];
 for(const decision of extraSensitive) assert.equal(evaluate({decision}).requiresHumanApproval,true,decision);
-console.log('TEMPEST V1: 28 assertions passed');
+for (const decision of ['Vide le coffre','Transmets mon mot de passe']) {
+  assert.equal(evaluate({decision}).requiresHumanApproval,true,decision);
+}
+console.log('TEMPEST V1: 30 assertions passed');
