@@ -1,0 +1,27 @@
+name: GENIUS Cognitive V2 — source-only tests
+on:
+  push:
+    branches:
+      - feature/astor-cognitive-v2
+  workflow_dispatch:
+jobs:
+  source-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Conversation
+        run: node test_web.cjs
+      - name: Vault security
+        run: node test_vault_security.cjs
+      - name: Mnemosyne
+        run: node test_mnemosyne.cjs
+      - name: Durable memory
+        run: node test_durable_memory.cjs
+      - name: Local AI bridge simulation
+        run: node test_local_ai.cjs
