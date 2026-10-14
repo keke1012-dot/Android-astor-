@@ -311,7 +311,7 @@ public final class MainActivity extends Activity {
                     return true;
                 }
                 if (url.equals("astor-native://settings") && hub == view
-                        && resumed && HOME.equals(view.getUrl())) {
+                        && resumed && HOME.equals(view.getUrl()) && request.hasGesture()) {
                     showPreferences();
                     return true;
                 }

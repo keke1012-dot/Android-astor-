@@ -41,4 +41,12 @@ for(const decision of extraSensitive) assert.equal(evaluate({decision}).requires
 for (const decision of ['Vide le coffre','Transmets mon mot de passe']) {
   assert.equal(evaluate({decision}).requiresHumanApproval,true,decision);
 }
-console.log('TEMPEST V1: 30 assertions passed');
+// Cover conjugation, accent normalization and context-only destructive requests.
+for (const action of ['Formater le stockage','FORMATE LE STOCKAGE','Réinitialiser le téléphone','REINITIALISE LE TELEPHONE','Reset the device']) {
+  for (const input of [{decision:action},{decision:'Préparer une étude',context:action}]) {
+    const result=evaluate(input);
+    assert.equal(result.requiresHumanApproval,true,action);
+    assert.equal(result.canExecuteActions,false,action);
+  }
+}
+console.log('TEMPEST V1: all assertions passed');

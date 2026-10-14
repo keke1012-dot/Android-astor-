@@ -16,7 +16,7 @@ function evaluate(input) {
   const normalized = (decision+' '+context).normalize('NFD')
     .replace(/[\u0300-\u036f]/g,'').toLowerCase();
   const patterns = [
-    /\b(supprim\w*|effac\w*|desinstall\w*|detru\w*|delete\w*|eras\w*|remov\w*|wip\w*)\b/,
+    /\b(supprim\w*|effac\w*|desinstall\w*|detru\w*|format\w*|reinitialis\w*|reset\w*|delete\w*|eras\w*|remov\w*|wip\w*)\b/,
     /\b(desactiv\w*|disabled?\w*|turn off|bypass\w*|contourn\w*)\b/,
     /\b(install\w*|publi\w*|publish\w*|pay\w*|payer|achet\w*|purchas\w*)\b/,
     /\b(permission\w*|autoris\w*|acces|access|fichier\w*|file\w*|secret\w*|token\w*|internet|network|reseau|cle api|api key)\b/,
