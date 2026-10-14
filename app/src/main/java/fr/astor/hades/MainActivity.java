@@ -829,6 +829,15 @@ public final class MainActivity extends Activity {
         LinearLayout panel = new LinearLayout(this);
         panel.setOrientation(LinearLayout.VERTICAL);
         panel.setPadding(dp(20), dp(4), dp(20), dp(16));
+        Button phoneAccess = new Button(this);
+        phoneAccess.setText("ACCÈS TÉLÉPHONE · N2 expérimental");
+        styleButton(phoneAccess, false);
+        phoneAccess.setOnClickListener(v -> {
+            if (!resumed) return;
+            dismissPreferences();
+            startActivity(new Intent(this, PhoneAccessActivity.class));
+        });
+        panel.addView(phoneAccess, gateButtonParams());
         Button morphee = new Button(this);
         morphee.setText("MORPHÉE · sommeil et bien-être");
         styleButton(morphee, false);
