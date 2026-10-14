@@ -14,3 +14,6 @@ Aucun schéma de stockage ni chemin de données modifié. Installer par-dessus l
 Limites : règles locales ciblées ; dialogue libre dépendant du modèle présent. Réglages de personnalité limités à la session ; souvenirs durables via validation explicite existante. L’installation et la conservation effective des données restent à confirmer sur le téléphone.
 
 Validation prévue : mêmes 13 suites Node et 2 suites Java, assembleRelease/lintRelease, signature privée et vérificateur de mise à jour compatible avant livraison.
+
+## Livraison vérifiée — 14 octobre 2026
+GitHub Actions 38563460754 : succès (13 suites Node, 2 suites Java, assembleRelease et lintRelease). Signature durable, comparaison à la 0.2.9.20 et alignement 16 KiB validés. Contenu HTML de l’APK signé identique à la branche testée. APK : Astor-0.2.9.21-Unifiee-Personnalite.apk. SHA256 : 424b6061c0c2238a9be0d932053f62f915950b20222e385ee6b20709ea125ec9.
