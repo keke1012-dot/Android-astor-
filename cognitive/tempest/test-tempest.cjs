@@ -1,0 +1,17 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {evaluate}=require('./tempest-strategic-v1.cjs');
+const basic=evaluate({decision:'Améliorer la compréhension naturelle'});
+assert.equal(basic.scenarios.length,3);
+assert.equal(basic.canExecuteActions,false);
+assert.equal(basic.factStatus,'unverified-user-input');
+assert.equal(basic.requiresHumanApproval,false);
+assert.equal(evaluate({decision:'Accès aux fichiers Android'}).requiresHumanApproval,true);
+assert.equal(evaluate({decision:'Supprimer les sauvegardes'}).requiresHumanApproval,true);
+assert.match(evaluate({decision:'Tester une stratégie',mode:'duel'}).challenge,/preuve/);
+assert.match(evaluate({decision:'Tester une stratégie',mode:'red-team'}).challenge,/défaillance/);
+assert.throws(()=>evaluate({decision:''}),RangeError);
+assert.throws(()=>evaluate({decision:'x'.repeat(2001)}),RangeError);
+assert.throws(()=>evaluate({decision:'Essai',mode:'execute'}),RangeError);
+assert.equal(evaluate({decision:'Essai',assumptions:['A',5,'B']}).assumptions.length,2);
+console.log('TEMPEST V1: 11 assertions passed');
