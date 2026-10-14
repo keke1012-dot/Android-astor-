@@ -1,0 +1,17 @@
+name: GENIUS V2 + TEMPEST — no APK
+on:
+  push:
+    branches: [feature/astor-cognitive-v2]
+  workflow_dispatch:
+jobs:
+  tempest:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: TEMPEST scenario engine tests
+        run: node cognitive/tempest/test-tempest.cjs
