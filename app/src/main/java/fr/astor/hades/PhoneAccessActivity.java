@@ -39,7 +39,7 @@ public final class PhoneAccessActivity extends Activity {
     private long authGeneration;
     private android.os.CancellationSignal authentication;
 
-    private void authenticateDiary() {
+    private void authenticateAccess() {
         if (!foreground || authenticating || authorized || isFinishing()) return;
         android.hardware.biometrics.BiometricManager manager = getSystemService(
                 android.hardware.biometrics.BiometricManager.class);
@@ -56,8 +56,8 @@ public final class PhoneAccessActivity extends Activity {
         final long generation = ++authGeneration;
         authentication = new android.os.CancellationSignal();
         android.hardware.biometrics.BiometricPrompt prompt = new android.hardware.biometrics.BiometricPrompt.Builder(this)
-                .setTitle("ASTOR · NIVEAU 2 · Ouvrir le journal")
-                .setSubtitle("Votre journal reste privé")
+                .setTitle("ASTOR · N2 · Accès téléphone")
+                .setSubtitle("Vos accès restent sous votre contrôle")
                 .setAllowedAuthenticators(strong)
                 .setNegativeButton("Annuler", getMainExecutor(), (dialog, which) -> finish())
                 .build();
@@ -94,7 +94,7 @@ public final class PhoneAccessActivity extends Activity {
         if (authorized) {
             idleHandler.removeCallbacks(idleLock);
             idleHandler.postDelayed(idleLock, 60_000L);
-        } else authenticateDiary();
+        } else authenticateAccess();
     }
 
     @Override protected void onPause() {
