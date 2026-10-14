@@ -145,7 +145,7 @@ public final class PhoneAccessActivity extends Activity {
     }
     private Button button(LinearLayout parent, String title, View.OnClickListener click) {
         Button view = new Button(this); view.setText(title); view.setAllCaps(false); view.setTextColor(CYAN);
-        view.setMinHeight(dp(50)); view.setOnClickListener(click); parent.addView(view,new LinearLayout.LayoutParams(-1,-2));return view;
+        view.setMinHeight(dp(50)); view.setOnClickListener(v -> { if(foreground&&authorized)click.onClick(v); }); parent.addView(view,new LinearLayout.LayoutParams(-1,-2));return view;
     }
     private void control(LinearLayout parent,String feature,String title) {
         Switch toggle = new Switch(this);toggle.setText(title);toggle.setTextColor(LIGHT);toggle.setMinHeight(dp(50));
@@ -199,9 +199,9 @@ public final class PhoneAccessActivity extends Activity {
         LinearLayout files=section("Fichiers choisis");control(files,"files","Activer cet accès");
         if(allowed("files")) {
             files.addView(text("Un fichier à la fois, choisi dans le sélecteur Android. Le texte reste dans ce panneau.",13));
-            button(files,"Choisir un fichier",v->launch(new Intent(Intent.ACTION_OPEN_DOCUMENT)
+            button(files,"Choisir un fichier",v->{if(!allowed("files"))return;launch(new Intent(Intent.ACTION_OPEN_DOCUMENT)
                     .addCategory(Intent.CATEGORY_OPENABLE).setType("*/*")
-                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION),PICK_FILE));
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION),PICK_FILE);});
             button(files,"Lire le fichier choisi",v->readFile(files));
             button(files,"Retirer l’accès au fichier",v->{forgetFile();render();});
         }
@@ -214,7 +214,7 @@ public final class PhoneAccessActivity extends Activity {
         if(allowed("calendar")) {
             calendar.addView(text("Consultation des 7 prochains jours sur demande. Les nouveaux événements sont validés dans l’application Agenda.",13));
             if(checkSelfPermission(Manifest.permission.READ_CALENDAR)!=PackageManager.PERMISSION_GRANTED)
-                button(calendar,"Autoriser la lecture de l’agenda",v->{externalFlow=true;requestPermissions(new String[]{Manifest.permission.READ_CALENDAR},CALENDAR_PERMISSION);});
+                button(calendar,"Autoriser la lecture de l’agenda",v->{if(!allowed("calendar"))return;externalFlow=true;requestPermissions(new String[]{Manifest.permission.READ_CALENDAR},CALENDAR_PERMISSION);});
             else button(calendar,"Consulter les 7 prochains jours",v->readCalendar(calendar));
             button(calendar,"Préparer un rendez-vous",v->eventForm());
         }
