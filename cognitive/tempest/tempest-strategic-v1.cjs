@@ -22,6 +22,8 @@ function evaluate(input) {
     /\b(permission\w*|autoris\w*|acces|access|fichier\w*|file\w*|secret\w*|token\w*|internet|network|reseau|cle api|api key)\b/,
     /\b(envoi\w*|transf\w*|partag\w*|upload\w*|export\w*)\b/
   ];
+  // Explicit high-impact phrases that must never silently bypass confirmation.
+  patterns.push(/\\b(vid\\w*|purge\\w*|transmet\\w*|transmi\\w*|coffre|mot de passe|password|identifiant\\w*)\\b/);
   const sensitive = patterns.some(re=>re.test(normalized));
 
   return {
