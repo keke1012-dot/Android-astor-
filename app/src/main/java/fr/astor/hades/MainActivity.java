@@ -315,18 +315,19 @@ public final class MainActivity extends Activity {
                     showPreferences();
                     return true;
                 }
-                if (url.equals("astor-native://activity") && HOME.equals(view.getUrl())) {
+                if (url.equals("astor-native://activity") && hub == view && resumed && HOME.equals(view.getUrl())) {
                     armIdleLock();
                     return true;
                 }
-                if (url.equals("astor-native://lock")) {
+                if (url.equals("astor-native://lock") && hub == view && resumed && HOME.equals(view.getUrl()) && request.hasGesture()) {
                     lockHub("Session verrouillée. La conversation temporaire a été effacée.");
                     return true;
                 }
                 if (HOME.equals(url)) return false;
                 Uri uri = request.getUrl();
-                if (request.hasGesture() && "https".equals(uri.getScheme())
-                        && uri.getUserInfo() == null && EXTERNAL_HOSTS.contains(uri.getHost()))
+                if (hub == view && resumed && HOME.equals(view.getUrl()) && request.hasGesture()
+                        && "https".equals(uri.getScheme()) && uri.getUserInfo() == null
+                        && uri.getPort() == -1 && EXTERNAL_HOSTS.contains(uri.getHost()))
                     askExternal(uri);
                 return true;
             }
