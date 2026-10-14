@@ -2,7 +2,7 @@ const fs=require('fs'),http=require('http'),assert=require('assert');
 const {chromium}=require('playwright');
 (async()=>{
  const html=fs.readFileSync(require('path').join(__dirname,'../app/src/main/assets/index.html'));
- const server=http.createServer((q,r)=>{r.setHeader('Content-Type','text/html');r.end(html)});await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;
+ const server=http.createServer((q,r)=>{const file=q.url.split('?')[0];if(file==='/entry-hub.js'||file==='/entry-hub.css'){r.setHeader('Content-Type',file.endsWith('.js')?'text/javascript':'text/css');return r.end(fs.readFileSync(require('path').join(__dirname,'../app/src/main/assets',file.slice(1))));}r.setHeader('Content-Type','text/html');r.end(html)});await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;
  try{
  browser=await chromium.launch({headless:true,args:['--no-sandbox']});const page=await browser.newPage({viewport:{width:393,height:852},deviceScaleFactor:1});const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:'+server.address().port);await page.locator('#voiceQuickAccess').click();

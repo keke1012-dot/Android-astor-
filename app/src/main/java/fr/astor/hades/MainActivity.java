@@ -231,7 +231,7 @@ public final class MainActivity extends Activity {
         status.setGravity(Gravity.CENTER);
         panel.addView(status);
         unlock = new Button(this);
-        unlock.setText("Déverrouiller Astor");
+        unlock.setText("Entrer dans mon espace");
         styleButton(unlock, true);
         unlock.setEnabled(!authenticating);
         unlock.setOnClickListener(v -> authenticate());
@@ -455,6 +455,11 @@ public final class MainActivity extends Activity {
                 if (url.equals("astor-native://morphee") && trustedVoiceView(view) && request.hasGesture()) {
                     dismissPreferences();
                     startActivity(new Intent(MainActivity.this, MorpheeActivity.class));
+                    return true;
+                }
+                if (url.equals("astor-native://phone-access") && trustedVoiceView(view) && request.hasGesture()) {
+                    dismissPreferences();
+                    startActivity(new Intent(MainActivity.this, PhoneAccessActivity.class));
                     return true;
                 }
                 if (url.equals("astor-native://settings") && hub == view
