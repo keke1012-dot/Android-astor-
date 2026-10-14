@@ -30,4 +30,12 @@ for (const decision of sensitiveExamples) {
 assert.equal(evaluate({decision:'Analyser les risques du projet'}).requiresHumanApproval,false);
 assert.equal(evaluate({decision:'Préparer une étude',context:'Accès aux fichiers'}).requiresHumanApproval,true);
 assert.equal(evaluate({decision:'Essai'}).canExecuteActions,false);
-console.log('TEMPEST V1: 23 assertions passed');
+const extraSensitive=[
+  'Révoque les autorisations',
+  'Formate le stockage',
+  'Réinitialise le téléphone',
+  'Désactive le pare-feu',
+  'Exporte les données privées'
+];
+for(const decision of extraSensitive) assert.equal(evaluate({decision}).requiresHumanApproval,true,decision);
+console.log('TEMPEST V1: 28 assertions passed');
