@@ -5,20 +5,8 @@
   if (!chat || typeof chat.before !== 'function') return;
   const panel = document.createElement('details');
   panel.id = 'nativeSpeechPanel';
-  panel.style.cssText = 'flex-shrink:0;margin:8px 0;border:1px solid #285269;border-radius:12px;padding:10px;scroll-margin-top:90px';
-  panel.innerHTML = '<summary style="cursor:pointer;color:#a3eeff">◈ Voix ASTOR · hors ligne</summary>'
-    + '<p class="hint">Voix française posée, avec une légère résonance numérique. Sans compte ni clé API.</p>'
-    + '<div class="toolbar"><button type="button" id="nativeSpeechInit">Détecter les voix</button>'
-    + '<button type="button" id="nativeSpeechSettings">Paramètres voix</button></div>'
-    + '<label for="nativeSpeechVoice">Voix française installée</label><select id="nativeSpeechVoice" aria-label="Voix française"><option value="">Détection nécessaire</option></select>'
-    + '<label for="nativeSpeechMode">Profil</label><select id="nativeSpeechMode"><option value="jarvis">Assistant grave · inspiré de JARVIS</option><option value="metal">Métallique · science-fiction</option><option value="grave">Grave · sans modulation</option></select>'
-    + '<div class="toolbar"><button type="button" id="nativeSpeechTest" disabled>Tester la voix</button>'
-    + '<button type="button" id="nativeSpeechRead" disabled>Lire la dernière réponse</button>'
-    + '<button type="button" id="nativeSpeechStop">Arrêter</button></div>'
-    + '<label class="hint"><input type="checkbox" id="nativeSpeechAuto" checked> Lire les nouvelles réponses automatiquement</label>'
-    + '<label class="hint"><input type="checkbox" id="nativeSpeechMute"> Mode muet</label>'
-    + '<p class="hint">Lecture du début de la réponse, jusqu’à 800 caractères. Écoutez les voix puis choisissez le timbre masculin qui vous convient. Votre choix est mémorisé.</p>'
-    + '<p id="nativeSpeechStatus" class="statusline" role="status" aria-live="polite">Préparation de la voix française locale. Si nécessaire, touchez Détecter les voix.</p>';
+  panel.dataset.state = 'preparing';
+  panel.innerHTML = "<summary class=\"voice-summary\"><span class=\"voice-symbol\" aria-hidden=\"true\">◈</span><span class=\"voice-summary-copy\"><strong>Voix ASTOR</strong><small>Français · sur votre téléphone</small></span><span id=\"nativeSpeechBadge\" class=\"voice-badge\">Préparation</span></summary>\n<div class=\"voice-content\">\n<div class=\"voice-hero\"><div><span class=\"eyebrow\">VOTRE ASSISTANT VOCAL</span><h3>Une voix à vos côtés.</h3><p>Écoutez les réponses, à votre rythme.</p></div><div class=\"voice-wave\" aria-hidden=\"true\"><i></i><i></i><i></i><i></i><i></i></div></div>\n<p id=\"nativeSpeechStatus\" class=\"voice-status\" role=\"status\" aria-live=\"polite\">Préparation de la voix française locale. Si nécessaire, touchez Actualiser les voix.</p>\n<div class=\"voice-playback\"><button type=\"button\" id=\"nativeSpeechTest\" disabled>Tester la voix</button><button type=\"button\" id=\"nativeSpeechRead\" disabled>Lire la dernière réponse</button><button type=\"button\" id=\"nativeSpeechStop\">Arrêter la lecture</button></div>\n<div class=\"voice-switches\"><label class=\"voice-switch\"><span><strong>Réponses à voix haute</strong><small>Lire les nouvelles réponses automatiquement</small></span><input type=\"checkbox\" id=\"nativeSpeechAuto\" role=\"switch\" checked></label><label class=\"voice-switch\"><span><strong>Mode muet</strong><small>Suspendre la lecture vocale</small></span><input type=\"checkbox\" id=\"nativeSpeechMute\" role=\"switch\"></label></div>\n<details class=\"voice-personalize\"><summary>Personnaliser la voix <span aria-hidden=\"true\">＋</span></summary><div class=\"voice-options\"><label for=\"nativeSpeechVoice\">Voix française installée</label><select id=\"nativeSpeechVoice\" aria-label=\"Voix française\"><option value=\"\">Détection nécessaire</option></select><label for=\"nativeSpeechMode\">Timbre de l’assistant</label><select id=\"nativeSpeechMode\"><option value=\"jarvis\">Assistant grave</option><option value=\"metal\">Métallique · science-fiction</option><option value=\"grave\">Grave · sans modulation</option></select><p>Choisissez le timbre qui vous convient. Votre sélection est conservée.</p><button type=\"button\" id=\"nativeSpeechSettings\">Réglages vocaux Android</button></div></details>\n<div class=\"voice-footer\"><button type=\"button\" id=\"nativeSpeechInit\">Actualiser les voix</button><p>Traitement local · sans compte externe<br>Lecture limitée au début de la réponse, jusqu’à 800 caractères.</p></div>\n</div>\n";
   chat.before(panel);
   const nav = (action, args = {}) => {
     if (document.body.classList.contains('astor-locked')) return;
@@ -33,7 +21,7 @@
       if (document.body.classList.contains('astor-locked')) return;
       panel.open = true; quick.setAttribute('aria-expanded', 'true');
       panel.scrollIntoView?.({behavior:'smooth', block:'start'});
-      $('nativeSpeechInit').focus({preventScroll:true});
+      $(readyForVoice && !voiceMuted ? 'nativeSpeechTest' : 'nativeSpeechInit').focus({preventScroll:true});
     };
     panel.addEventListener('toggle', () => quick.setAttribute('aria-expanded', String(panel.open)));
     actions.append(quick);
@@ -61,18 +49,21 @@
   $('nativeSpeechVoice').onchange = saveChoice; $('nativeSpeechMode').onchange = saveChoice;
   $('nativeSpeechAuto').onchange = () => { clearPending(); nav('tts-auto', {enabled:$('nativeSpeechAuto').checked ? '1' : '0'}); };
   const speak = text => nav('tts-speak', {text, voice:$('nativeSpeechVoice').value, mode:$('nativeSpeechMode').value});
-  $('nativeSpeechTest').onclick = () => speak('Bonsoir Kellian. Je suis Astor. Tous les systèmes sont prêts. Je suis à votre écoute.');
+  $('nativeSpeechTest').onclick = () => speak('Bonsoir Kellian. Je suis Astor. Voici un aperçu de ma voix locale.');
   $('nativeSpeechRead').onclick = () => {
     const bubbles = [...chat.querySelectorAll('.bubble:not(.user)')];
     const text = bubbles.at(-1)?.textContent?.trim();
     if (!text) { $('nativeSpeechStatus').textContent = 'Aucune réponse à lire pour le moment.'; return; }
     speak(text.length > 800 ? text.slice(0, 800) + '…' : text);
   };
-  $('nativeSpeechStop').onclick = () => { clearPending(); nav('tts-stop'); };
-  $('nativeSpeechMute').onchange = () => { voiceMuted = $('nativeSpeechMute').checked; clearPending(); nav('tts-mute', {enabled:voiceMuted ? '1' : '0'}); };
+  $('nativeSpeechStop').onclick = () => { clearPending(); panel.dataset.state = voiceMuted ? 'muted' : readyForVoice ? 'ready' : 'preparing'; $('nativeSpeechBadge').textContent = voiceMuted ? 'Muet' : readyForVoice ? 'Prête' : 'Préparation'; nav('tts-stop'); };
+  $('nativeSpeechMute').onchange = () => { voiceMuted = $('nativeSpeechMute').checked; panel.dataset.state = voiceMuted ? 'muted' : readyForVoice ? 'ready' : 'preparing'; $('nativeSpeechBadge').textContent = voiceMuted ? 'Muet' : readyForVoice ? 'Prête' : 'Préparation'; clearPending(); nav('tts-mute', {enabled:voiceMuted ? '1' : '0'}); };
   window.ASTOR_SPEECH = Object.freeze({state(message, voices, ready, muted, auto = true, preferredVoice = "", profile = "jarvis") {
     if (document.body.classList.contains('astor-locked')) return;
     $('nativeSpeechStatus').textContent = String(message || 'État vocal indisponible.');
+    const playing = ready === true && muted !== true && message === 'ASTOR · lecture locale en cours.';
+    panel.dataset.state = muted === true ? 'muted' : playing ? 'speaking' : ready === true ? 'ready' : 'preparing';
+    $('nativeSpeechBadge').textContent = muted === true ? 'Muet' : playing ? 'Lecture' : ready === true ? 'Prête' : 'Préparation';
     const select = $('nativeSpeechVoice'), previous = preferredVoice || select.value;
     select.replaceChildren();
     if (Array.isArray(voices)) for (const v of voices) {
@@ -92,7 +83,7 @@
   }});
   window.addEventListener('pagehide', clearPending);
   window.addEventListener('astor-lock-request', () => {
-    clearPending(); readyForVoice = false;
+    clearPending(); readyForVoice = false; panel.dataset.state = 'locked'; $('nativeSpeechBadge').textContent = 'Verrouillée';
     $('nativeSpeechTest').disabled = true; $('nativeSpeechRead').disabled = true;
   });
 })();
