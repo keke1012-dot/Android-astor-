@@ -45,9 +45,9 @@ android {
     buildTypes {
         debug {
             debuggable false
-            applicationIdSuffix project.hasProperty('astorUnifiedTest') ? '.diagnostic' : project.hasProperty('astorFilesTest') ? '.test.files028' : project.hasProperty('astorInternetTest') ? '.test.internet0271' : project.hasProperty('astorGlobalTest') ? '.test.global025rc2' : project.hasProperty('astorMemoryTest') ? '.test.mnemosyne' : (project.hasProperty('astorSeparateTest') ? '.test.tempest' : '.test')
+            applicationIdSuffix project.hasProperty('astorUnifiedTest') ? '.test.morphee02912' : project.hasProperty('astorFilesTest') ? '.test.files028' : project.hasProperty('astorInternetTest') ? '.test.internet0271' : project.hasProperty('astorGlobalTest') ? '.test.global025rc2' : project.hasProperty('astorMemoryTest') ? '.test.mnemosyne' : (project.hasProperty('astorSeparateTest') ? '.test.tempest' : '.test')
             versionNameSuffix '-test'
-            manifestPlaceholders = [astorAppLabel: project.hasProperty('astorUnifiedTest') ? 'Astor Morphée Test' : project.hasProperty('astorFilesTest') ? 'Astor Fichiers 0.2.8' : project.hasProperty('astorInternetTest') ? 'Astor Internet 0.2.7.1' : project.hasProperty('astorGlobalTest') ? 'Astor 0.2.5 RC2' : project.hasProperty('astorMemoryTest') ? 'Astor Mémoire' : (project.hasProperty('astorSeparateTest') ? 'Astor Tempest' : 'Astor Test')]
+            manifestPlaceholders = [astorAppLabel: project.hasProperty('astorUnifiedTest') ? 'Astor Morphée 0.2.9.12' : project.hasProperty('astorFilesTest') ? 'Astor Fichiers 0.2.8' : project.hasProperty('astorInternetTest') ? 'Astor Internet 0.2.7.1' : project.hasProperty('astorGlobalTest') ? 'Astor 0.2.5 RC2' : project.hasProperty('astorMemoryTest') ? 'Astor Mémoire' : (project.hasProperty('astorSeparateTest') ? 'Astor Tempest' : 'Astor Test')]
         }
         release {
             manifestPlaceholders = [astorAppLabel: 'Astor Unifiée']
