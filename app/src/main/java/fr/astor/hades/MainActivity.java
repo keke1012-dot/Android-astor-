@@ -452,6 +452,11 @@ public final class MainActivity extends Activity {
                     }
                     return true;
                 }
+                if (url.equals("astor-native://morphee") && trustedVoiceView(view) && request.hasGesture()) {
+                    dismissPreferences();
+                    startActivity(new Intent(MainActivity.this, MorpheeActivity.class));
+                    return true;
+                }
                 if (url.equals("astor-native://settings") && hub == view
                         && resumed && HOME.equals(view.getUrl())) {
                     showPreferences();
