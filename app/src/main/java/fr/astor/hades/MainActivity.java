@@ -815,6 +815,15 @@ public final class MainActivity extends Activity {
         LinearLayout panel = new LinearLayout(this);
         panel.setOrientation(LinearLayout.VERTICAL);
         panel.setPadding(dp(20), dp(4), dp(20), dp(16));
+        Button morphee = new Button(this);
+        morphee.setText("MORPHÉE · sommeil et bien-être");
+        styleButton(morphee, false);
+        morphee.setOnClickListener(v -> {
+            if (!resumed) return;
+            dismissPreferences();
+            startActivity(new Intent(this, MorpheeActivity.class));
+        });
+        panel.addView(morphee, gateButtonParams());
         Switch music = new Switch(this);
         music.setText("Musique d’entrée");
         music.setChecked(getPreferences(MODE_PRIVATE).getBoolean("entrance_music", true));
@@ -846,15 +855,6 @@ public final class MainActivity extends Activity {
         animations.setText("Animations du Hub");
         animations.setChecked(animationsEnabled());
         panel.addView(animations, new LinearLayout.LayoutParams(-1, dp(56)));
-        Button morphee = new Button(this);
-        morphee.setText("MORPHÉE · sommeil et bien-être");
-        styleButton(morphee, false);
-        morphee.setOnClickListener(v -> {
-            if (!resumed) return;
-            dismissPreferences();
-            startActivity(new Intent(this, MorpheeActivity.class));
-        });
-        panel.addView(morphee, gateButtonParams());
         settingLabel(panel, "Les réglages restent sur ce téléphone. La biométrie et le verrouillage en arrière-plan restent obligatoires.");
         ScrollView scroll = new ScrollView(this);
         scroll.addView(panel);
