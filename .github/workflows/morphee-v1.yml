@@ -1,4 +1,4 @@
-name: ASTOR MORPHEE V1 - isolated checks
+name: ASTOR MORPHEE - unified update candidate
 on:
   push:
     branches:
@@ -61,18 +61,42 @@ jobs:
           if [ "$result" -ne 0 ]; then tail -n 50 /tmp/astor-sdk-licenses.log; exit "$result"; fi
       - name: Install Android toolchain
         run: '"$SDKMANAGER" --sdk_root="$ANDROID_SDK_ROOT" "platforms;android-35" "build-tools;35.0.0" "ndk;27.2.12479018" "cmake;3.22.1"'
-      - name: Compile and lint non-stable test APK
-        run: gradle --no-daemon :app:assembleDebug :app:lintDebug -PastorUnifiedTest
-      - name: Prepare isolated test APK
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Unified functional regressions
+        run: |
+          node tests_v025/guardrails.cjs
+          node test_web.cjs
+          node test_vault_security.cjs
+          node test_mnemosyne.cjs
+          node test_durable_memory.cjs
+          node test_backup_transfer.cjs
+          node test_local_ai.cjs
+          node test_internet.cjs
+          node test_math.cjs
+      - name: Compile and lint unified release candidate
+        run: gradle --no-daemon :app:assembleRelease :app:lintRelease -PastorUnifiedCandidate
+      - name: Prepare unsigned unified candidate and local signing tools
         run: |
           mkdir -p dist
-          cp app/build/outputs/apk/debug/app-debug.apk dist/Astor-0.2.9.13-Morphee-TEST.apk
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose dist/Astor-0.2.9.13-Morphee-TEST.apk
-          "$ANDROID_HOME/build-tools/35.0.0/zipalign" -c -P 16 4 dist/Astor-0.2.9.13-Morphee-TEST.apk
+          cp app/build/outputs/apk/release/app-release-unsigned.apk dist/Astor-0.2.9.14-Morphee-Unifiee-UNSIGNED.apk
+          cp "$ANDROID_HOME/build-tools/35.0.0/lib/apksigner.jar" dist/apksigner.jar
+          "$ANDROID_HOME/build-tools/35.0.0/zipalign" -c -P 16 4 dist/Astor-0.2.9.14-Morphee-Unifiee-UNSIGNED.apk
+          "$JAVA_HOME/bin/jlink" --add-modules java.base,java.logging,jdk.crypto.ec,jdk.crypto.cryptoki --strip-debug --no-header-files --no-man-pages --compress=2 --output "$RUNNER_TEMP/astor-signing-runtime"
+          tar -czf dist/signing-runtime.tar.gz -C "$RUNNER_TEMP" astor-signing-runtime
+          python3 - <<'PYVERIFY'
+          import runpy
+          m=runpy.run_path('scripts/verify_unified_update.py')['manifest_metadata']('dist/Astor-0.2.9.14-Morphee-Unifiee-UNSIGNED.apk')
+          assert m['package']=='fr.astor.hades.unified.test.unified029'
+          assert m['versionCode']==42
+          assert m['debuggable'] is False and m['allowBackup'] is False and m['cleartext'] is False
+          print('Unified identity and privacy flags verified')
+          PYVERIFY
           cd dist
           sha256sum *.apk > SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: ASTOR-Morphee-TEST
+          name: ASTOR-Morphee-Unified-Unsigned
           path: dist/
           if-no-files-found: error
