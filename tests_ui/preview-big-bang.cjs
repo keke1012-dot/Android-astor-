@@ -1,0 +1,15 @@
+const fs=require('fs'),http=require('http'),path=require('path'),assert=require('assert');const{chromium}=require('playwright');
+(async()=>{
+ const html=fs.readFileSync(path.join(__dirname,'../app/src/main/assets/index.html'));const server=http.createServer((q,r)=>{r.setHeader('Content-Type','text/html');r.end(html);});await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;
+ try{browser=await chromium.launch({args:['--no-sandbox']});const page=await browser.newPage({viewport:{width:393,height:852}}),errors=[];page.on('pageerror',e=>errors.push(e.message));const url='http://127.0.0.1:'+server.address().port;const time=new Date('2026-10-14T12:00:00Z');await page.clock.install({time});await page.clock.pauseAt(new Date(time.getTime()+100));fs.mkdirSync('big-bang-previews',{recursive:true});
+ for(const width of[393,320]){await page.setViewportSize({width,height:852});await page.goto(url);assert(await page.locator('#astorBigBang').isVisible());assert(await page.locator('main').evaluate(e=>e.inert));assert.equal(await page.locator('.bang-star').count(),48);const box=await page.locator('#skipBigBang').boundingBox();assert(box.height>=44);assert(!await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth));
+ for(const [phase,t]of [['concentration',480],['expansion',950],['revelation',1700]]){await page.evaluate(t=>{for(const a of document.getAnimations()){if(a.effect.target.closest('#astorBigBang')){a.pause();a.currentTime=t;}}},t);await page.screenshot({path:'big-bang-previews/'+phase+'-'+width+'.png'});}
+ await page.locator('#skipBigBang').click();assert.equal(await page.locator('#astorBigBang').count(),0);assert(!await page.locator('main').evaluate(e=>e.inert));await page.locator('#hubVoice').click();assert(await page.locator('#nativeSpeechPanel').evaluate(e=>e.open));}
+ await page.goto(url);await page.clock.runFor(2801);assert.equal(await page.locator('#astorBigBang').count(),0);assert(!await page.locator('main').evaluate(e=>e.inert));
+ await page.goto(url);await page.keyboard.press('Escape');assert.equal(await page.locator('#astorBigBang').count(),0);
+ await page.goto(url);await page.evaluate(()=>window.dispatchEvent(new Event('astor-lock-request')));assert.equal(await page.locator('#astorBigBang').count(),0);
+ await page.goto(url);await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));});assert.equal(await page.locator('#astorBigBang').count(),0);assert(!await page.locator('main').evaluate(e=>e.inert));
+ await page.goto(url);await page.emulateMedia({reducedMotion:'reduce'});assert.equal(await page.locator('#astorBigBang').count(),0);await page.goto(url);assert.equal(await page.locator('#astorBigBang').count(),0);assert(!await page.locator('main').evaluate(e=>e.inert));
+ assert.equal(errors.length,0,errors.join(';'));console.log('PASS: Big Bang 320/393 px, phases, skip, Escape, automatic exit, lock/background cleanup, reduced motion, focus and hub controls');
+ }finally{if(browser)await browser.close();server.close();}
+})().catch(e=>{console.error(e);process.exit(1)});
