@@ -11,7 +11,7 @@ Branche : feature/astor-personnalite-v1. Priorité : conversation locale et fiab
 - Consignes de personnalité intégrées au modèle local et au contrat distant existant ; question intacte et budget local de 2200 caractères préservés.
 - Les commandes prioritaires, le verrouillage, les permissions natives N2 et les confirmations de Mnémosyne restent responsables de leurs opérations. Le moteur de personnalité ne délivre aucune permission ; une confirmation générique « oui » ne peut déclencher une action sensible.
 - Réutilisation des souvenirs validés uniquement via l’option existante du coffre déverrouillé. Aucune nouvelle mémoire autonome, aucun agent supplémentaire.
-- APK de test prévue : paquet fr.astor.hades.personality.v1.test, version 0.2.9.21-personnalite-v1-test. Installation parallèle ; données et modèle local séparés. Ne pas désinstaller la version existante. Export/import chiffré existant utilisable dans une application vide, sur choix explicite.
+- APK de test compilée et vérifiée : paquet fr.astor.hades.personality.v1.test, version 0.2.9.21-personnalite-v1-test. Installation parallèle ; données et modèle local séparés. Ne pas désinstaller la version existante. Export/import chiffré existant utilisable dans une application vide, sur choix explicite.
 
 ## Validation
 13 suites Node réussies : personnalité (unitaire et console), guardrails, web, Hades, langage des modules, N2, coffre, Mnémosyne, mémoire durable, sauvegardes, pont IA locale, Internet et mathématiques.
@@ -24,7 +24,7 @@ CI dédiée : tests Java Morphée et N2, suites Node, compilation/lint Android, 
 - Morphée intervient ici sous forme de proposition textuelle. Aucun diagnostic médical, rappel, écoute ou ouverture automatique.
 - Les préférences de ton sont limitées à la session. Les préférences durables restent des souvenirs explicitement confirmés et autorisés.
 - Aucun test physique sur téléphone dans cette session. Vérifier installation côte à côte, modèle hors ligne, voix, refus, verrouillage et conservation des données de l’application actuelle.
-- La compilation Android et les tests Java sont délégués à GitHub Actions faute de JDK/SDK Android locaux. Le statut final du build doit être consulté avant de présenter une APK comme disponible.
+- La compilation Android et les tests Java sont délégués à GitHub Actions faute de JDK/SDK Android locaux. La chaîne CI a terminé avec succès.
 
 ## Essai conseillé
 1. « Astor est impossible à pirater » : contradiction avec raison.
@@ -34,3 +34,7 @@ CI dédiée : tests Java Morphée et N2, suites Node, compilation/lint Android, 
 5. Verrouiller et reprendre : proposition précédente oubliée.
 
 RC1, autres branches, APK existantes et sauvegardes n’ont été ni modifiées ni supprimées par cette mission.
+
+## Résultat de compilation — 14 octobre 2026
+GitHub Actions 38561871332 : succès. Deux suites Java (Morphée et permissions N2), treize suites Node, assembleDebug et lintDebug réussis. Signature APK et paquet isolé vérifiés en CI ; empreintes de l’archive et de l’APK vérifiées au téléchargement. APK pour Android 11+ ARM64, signée avec une clé de test : aucune promesse de compatibilité de signature avec une future compilation. Ne pas utiliser cette expérience pour stocker l’unique copie d’une donnée.
+Commit applicatif testé : 991d7902648df3f0be6c529eed73a12a572102f2.
