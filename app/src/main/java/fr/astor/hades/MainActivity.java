@@ -846,16 +846,15 @@ public final class MainActivity extends Activity {
         animations.setText("Animations du Hub");
         animations.setChecked(animationsEnabled());
         panel.addView(animations, new LinearLayout.LayoutParams(-1, dp(56)));
-        if (hub != null) {
-            Button morphee = new Button(this);
-            morphee.setText("MORPHÉE · sommeil et bien-être");
-            styleButton(morphee, false);
-            morphee.setOnClickListener(v -> {
-                dismissPreferences();
-                startActivity(new Intent(this, MorpheeActivity.class));
-            });
-            panel.addView(morphee, gateButtonParams());
-        }
+        Button morphee = new Button(this);
+        morphee.setText("MORPHÉE · sommeil et bien-être");
+        styleButton(morphee, false);
+        morphee.setOnClickListener(v -> {
+            if (!resumed) return;
+            dismissPreferences();
+            startActivity(new Intent(this, MorpheeActivity.class));
+        });
+        panel.addView(morphee, gateButtonParams());
         settingLabel(panel, "Les réglages restent sur ce téléphone. La biométrie et le verrouillage en arrière-plan restent obligatoires.");
         ScrollView scroll = new ScrollView(this);
         scroll.addView(panel);

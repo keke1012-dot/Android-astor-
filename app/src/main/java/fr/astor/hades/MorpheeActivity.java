@@ -25,12 +25,60 @@ import org.json.JSONObject;
 import java.time.LocalDate;
 import java.util.Locale;
 
-/** Native, offline MORPHÉE panel. Launched only from the authenticated ASTOR settings. */
+/** Native, offline MORPHÉE panel. Access to the diary requires current foreground strong biometrics. */
 public final class MorpheeActivity extends Activity {
     private static final int CYAN = Color.rgb(124, 229, 239);
     private static final int LIGHT = Color.rgb(218, 239, 247);
     private MorpheeStore store;
     private LinearLayout column;
+    private boolean foreground;
+    private boolean authenticating;
+    private boolean authorized;
+    private long authGeneration;
+    private android.os.CancellationSignal authentication;
+
+    private void authenticateDiary() {
+        if (!foreground || authenticating || authorized || isFinishing()) return;
+        android.hardware.biometrics.BiometricManager manager = getSystemService(
+                android.hardware.biometrics.BiometricManager.class);
+        int strong = android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG;
+        if (manager == null || manager.canAuthenticate(strong)
+                != android.hardware.biometrics.BiometricManager.BIOMETRIC_SUCCESS) {
+            new AlertDialog.Builder(this).setTitle("MORPHÉE")
+                    .setMessage("La biométrie forte est nécessaire pour ouvrir votre journal.")
+                    .setPositiveButton("Retour", (dialog, which) -> finish())
+                    .setOnCancelListener(dialog -> finish()).show();
+            return;
+        }
+        authenticating = true;
+        final long generation = ++authGeneration;
+        authentication = new android.os.CancellationSignal();
+        android.hardware.biometrics.BiometricPrompt prompt = new android.hardware.biometrics.BiometricPrompt.Builder(this)
+                .setTitle("MORPHÉE · Ouvrir le journal")
+                .setSubtitle("Votre journal reste privé")
+                .setAllowedAuthenticators(strong)
+                .setNegativeButton("Annuler", getMainExecutor(), (dialog, which) -> finish())
+                .build();
+        prompt.authenticate(authentication, getMainExecutor(),
+                new android.hardware.biometrics.BiometricPrompt.AuthenticationCallback() {
+            @Override public void onAuthenticationSucceeded(
+                    android.hardware.biometrics.BiometricPrompt.AuthenticationResult result) {
+                if (generation != authGeneration || !foreground || isFinishing() || isDestroyed()
+                        || result.getAuthenticationType() != android.hardware.biometrics.BiometricPrompt.AUTHENTICATION_RESULT_TYPE_BIOMETRIC)
+                    return;
+                authenticating = false;
+                authentication = null;
+                authorized = true;
+                store = new MorpheeStore(MorpheeActivity.this);
+                MorpheeScheduler.scheduleAll(MorpheeActivity.this);
+                render();
+                onUserInteraction();
+            }
+            @Override public void onAuthenticationError(int code, CharSequence message) {
+                if (generation == authGeneration && !isDestroyed()) finish();
+            }
+        });
+    }
     private final android.os.Handler idleHandler = new android.os.Handler(android.os.Looper.getMainLooper());
     private final Runnable idleLock = this::finish;
 
@@ -42,12 +90,22 @@ public final class MorpheeActivity extends Activity {
 
     @Override protected void onResume() {
         super.onResume();
-        idleHandler.removeCallbacks(idleLock);
-        idleHandler.postDelayed(idleLock, 60_000L);
+        foreground = true;
+        if (authorized) {
+            idleHandler.removeCallbacks(idleLock);
+            idleHandler.postDelayed(idleLock, 60_000L);
+        } else authenticateDiary();
     }
 
     @Override protected void onPause() {
+        foreground = false;
+        authGeneration++;
+        if (authentication != null) authentication.cancel();
+        authentication = null;
+        authenticating = false;
+        authorized = false;
         idleHandler.removeCallbacks(idleLock);
+        setContentView(new TextView(this));
         super.onPause();
     }
 
@@ -59,9 +117,12 @@ public final class MorpheeActivity extends Activity {
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
-        store = new MorpheeStore(this);
-        MorpheeScheduler.scheduleAll(this);
-        render();
+        TextView locked = new TextView(this);
+        locked.setText("MORPHÉE · Validation biométrique nécessaire");
+        locked.setTextColor(LIGHT);
+        locked.setBackgroundColor(Color.rgb(5, 13, 24));
+        locked.setPadding(dp(22), dp(40), dp(22), dp(22));
+        setContentView(locked);
     }
 
     private int dp(int value) { return Math.round(getResources().getDisplayMetrics().density * value); }
@@ -100,6 +161,7 @@ public final class MorpheeActivity extends Activity {
     }
 
     private void render() {
+        if (!authorized || !foreground || store == null) return;
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
         scroll.setOnApplyWindowInsetsListener((view, insets) -> {
@@ -120,7 +182,7 @@ public final class MorpheeActivity extends Activity {
         scroll.addView(column);
         setContentView(scroll);
 
-        TextView title = text("MORPHÉE · V1.0.1", 25, CYAN);
+        TextView title = text("MORPHÉE · V1.0.2", 25, CYAN);
         title.setLetterSpacing(0.10f);
         column.addView(title);
         label("SOMMEIL 23:00 → 09:00 · Préparation 22:30");
@@ -261,6 +323,7 @@ public final class MorpheeActivity extends Activity {
                 .setPositiveButton("OK", null).show();
     }
     private void exportHistory() {
+        if (!authorized || !foreground || store == null) return;
         try {
             JSONArray history = store.read();
             StringBuilder csv = new StringBuilder("date;endormissement;reveil;minutes;energie\n");
