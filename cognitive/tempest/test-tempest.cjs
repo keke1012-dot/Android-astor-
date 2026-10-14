@@ -14,4 +14,20 @@ assert.throws(()=>evaluate({decision:''}),RangeError);
 assert.throws(()=>evaluate({decision:'x'.repeat(2001)}),RangeError);
 assert.throws(()=>evaluate({decision:'Essai',mode:'execute'}),RangeError);
 assert.equal(evaluate({decision:'Essai',assumptions:['A',5,'B']}).assumptions.length,2);
-console.log('TEMPEST V1: 11 assertions passed');
+const sensitiveExamples=[
+  'Supprime les sauvegardes',
+  'Efface mes fichiers',
+  'Désactive la sécurité',
+  'Envoie mes données',
+  'Installe une application',
+  'Donne accès à Internet',
+  'Partage le token',
+  'Contournons les permissions'
+];
+for (const decision of sensitiveExamples) {
+  assert.equal(evaluate({decision}).requiresHumanApproval,true,decision);
+}
+assert.equal(evaluate({decision:'Analyser les risques du projet'}).requiresHumanApproval,false);
+assert.equal(evaluate({decision:'Préparer une étude',context:'Accès aux fichiers'}).requiresHumanApproval,true);
+assert.equal(evaluate({decision:'Essai'}).canExecuteActions,false);
+console.log('TEMPEST V1: 23 assertions passed');
